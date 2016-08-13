@@ -3,6 +3,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import com.sun.net.httpserver.Headers;
@@ -14,14 +15,17 @@ public class ServerRunner {
 
 	private final static int port = 8000;
 	private static int connections = 0;
-	private static int maxConnections = 1;
 
 	public ServerRunner() {
 		// TODO Auto-generated constructor stub
 	}
 
 	public static void main(String[] args) throws Exception {
-		HttpServer server = HttpServer.create(new InetSocketAddress("192.168.0.101",port), 0);
+		ConsoleCommands console = new ConsoleCommands();
+		console.start();
+		String address = InetAddress.getLocalHost().getHostAddress();
+		System.out.println(address);
+		HttpServer server = HttpServer.create(new InetSocketAddress(address,port), 0);
 		/*HttpContext context = server.createContext("/test");
 		context.getFilters().add(new ParameterFilter());*/
 		System.out.println(server.getAddress().getAddress().getHostAddress());
@@ -39,9 +43,7 @@ public class ServerRunner {
 			String data = "Leave me alone!";
 			System.out.println("Amount connections = " + connections);
 			connections++;
-			if (connections>=maxConnections){
-				data = "Last allowed connection";
-			}
+			
 			try {
 				getParameters(t);
 			} catch (Exception e) {
@@ -54,9 +56,6 @@ public class ServerRunner {
 			OutputStream os = t.getResponseBody();
 			os.write(data.getBytes());
 			os.close();
-			if (connections>=maxConnections){
-				System.exit(0);
-			}
 			
 		}
 	}
