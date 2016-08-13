@@ -52,6 +52,7 @@ public class ConsoleCommands extends Thread {
 		while (true){
 			String input = keyboard.nextLine();
 			if (input.equalsIgnoreCase(commands[0])){//Termination command
+				ServerRunner.server.stop(0);
 				System.exit(0);
 			}
 			System.err.println("Command not found.\nCommand give: \t" +input);

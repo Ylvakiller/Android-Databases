@@ -17,6 +17,8 @@ public class ClientRunner {
 	}
 
 	public static void main(String[] args) {
+		int i = 0;
+		while(i<10){
 		try {
             URL url = new URL("http://" + ip + ":" + port + "/data");
 			//URL url = new URL("https://selfsolve.apple.com/wcResults.do");
@@ -49,6 +51,8 @@ public class ClientRunner {
             br.close();
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+        i++;	
         }
 
 	}

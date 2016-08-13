@@ -13,6 +13,7 @@ import com.sun.net.httpserver.HttpServer;
 
 public class ServerRunner {
 
+	public static HttpServer server;
 	private final static int port = 8000;
 	private static int connections = 0;
 
@@ -25,14 +26,13 @@ public class ServerRunner {
 		console.start();
 		String address = InetAddress.getLocalHost().getHostAddress();
 		System.out.println(address);
-		HttpServer server = HttpServer.create(new InetSocketAddress(address,port), 0);
+		server = HttpServer.create(new InetSocketAddress(address,port), 0);
 		/*HttpContext context = server.createContext("/test");
 		context.getFilters().add(new ParameterFilter());*/
 		System.out.println(server.getAddress().getAddress().getHostAddress());
 		server.createContext("/data", new InfoHandler());
 		server.setExecutor(null); // creates a default executor
 		server.start();
-		
 		System.out.println("Server Started");
 		
 	}
@@ -41,9 +41,9 @@ public class ServerRunner {
 		public void handle(HttpExchange t) throws IOException {
 			System.out.println("someone is connecting!");
 			String data = "Leave me alone!";
-			System.out.println("Amount connections = " + connections);
-			connections++;
 			
+			connections++;
+			System.out.println("This is connection number = " + connections);
 			try {
 				getParameters(t);
 			} catch (Exception e) {
@@ -79,7 +79,7 @@ public class ServerRunner {
 		} finally {
 		    in.close();
 		}
-		System.out.println(qry);
+		System.out.println("Post querry = \t" + qry);
 		
 	}
 }
