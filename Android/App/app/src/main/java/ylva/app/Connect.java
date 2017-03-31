@@ -15,7 +15,7 @@ import java.net.URL;
 public class Connect  {
 
     private final static int port = 2026;
-    private final static String ip = "asa.fawlty.nl";
+    private final static String ip = "192.168.0.101";
     protected final static String USER_AGENT = "Mozilla/5.0";
 
 

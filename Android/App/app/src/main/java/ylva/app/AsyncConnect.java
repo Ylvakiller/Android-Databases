@@ -72,24 +72,13 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
     }
 
     public String encrypt(String str) {
-        /*try {
-            // Encode the string into bytes using utf-8
-            byte[] utf8 = str.getBytes("UTF8");
-
-            // Encrypt
-            byte[] enc = ecipher.doFinal(utf8);
-
-            // Encode bytes to base64 to get a string
-            return new sun.misc.BASE64Encoder().encode(enc);
-        } catch (javax.crypto.BadPaddingException e) {
-        } catch (IllegalBlockSizeException e) {
-        } catch (UnsupportedEncodingException e) {
-        } catch (java.io.IOException e) {
+        
+        String encrypted = null;
+        try {
+            encrypted = Encryption.encrypt("test", str);
+        } catch (Exception e) {
+            Log.d("Ylva","Error|"+e.getMessage());
         }
-        return null;*/
-        //int temp = (int)str;
-        Encryption encryption = Encryption.getDefault("Key", "Salt", new byte[16]);
-        String encrypted = encryption.encryptOrNull(str);
         Log.i("Ylva", "Ecnrypted :" + encrypted);
 
         return encrypted;
