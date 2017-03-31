@@ -39,6 +39,7 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
             String urlParameters = parameters[0].message;
             Log.i("Ylva", "urlParameters :" + urlParameters);
             urlParameters = encrypt(urlParameters);
+            Log.d("Ylva","Attempting to decrypt url param" + decrypt(urlParameters));
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
             wr.writeBytes(urlParameters);
@@ -82,5 +83,17 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
         Log.i("Ylva", "Ecnrypted :" + encrypted);
 
         return encrypted;
+    }
+    public String decrypt(String str) {
+
+        String decrypt = null;
+        try {
+            decrypt = Encryption.decrypt("test", str);
+        } catch (Exception e) {
+            Log.d("Ylva","Error|"+e.getMessage());
+        }
+        Log.i("Ylva", "Ecnrypted :" + decrypt);
+
+        return decrypt;
     }
 }
