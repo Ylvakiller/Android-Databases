@@ -47,7 +47,7 @@ public class ServerRunner {
 			connections++;
 			System.out.println("This is connection number = " + connections);
 			try {
-				data = decrypt(querryhandler(getParameters(t)));
+				data = querryhandler(decrypt(getParameters(t)));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
