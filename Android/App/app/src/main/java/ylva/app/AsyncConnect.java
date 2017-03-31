@@ -72,7 +72,7 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
     }
 
     public String encrypt(String str) {
-        
+
         String encrypted = null;
         try {
             encrypted = Encryption.encrypt("test", str);

@@ -124,6 +124,7 @@ public class ServerRunner {
 	
 	private static String decrypt(String message){
 		System.out.println("Raw querry = \t|" + message);
+		System.out.println("End of Message");
 		try {
 			message = Encryption.decrypt("test",message);
 		} catch (Exception e) {
