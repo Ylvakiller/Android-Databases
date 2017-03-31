@@ -90,6 +90,7 @@ public class ServerRunner {
 	 * @param qry the raw parameters
 	 */
 	private static String querryhandler(String qry){
+		System.out.println("Raw Querry \t"+ qry );
 		if (!qry.contains(":")){
 			//Invalid Command
 			return "Invalid command request";
