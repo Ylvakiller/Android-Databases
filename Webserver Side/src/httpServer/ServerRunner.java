@@ -91,7 +91,7 @@ public class ServerRunner {
 	 */
 	private static String querryhandler(String qry){
 		System.out.println("Raw Querry \t"+ qry );
-		if (!qry.contains(":")){
+		if (qry.contains(":")){
 			//Invalid Command
 			return "Invalid command request";
 		}else{
