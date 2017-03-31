@@ -92,7 +92,7 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
         } catch (Exception e) {
             Log.d("Ylva","Error|"+e.getMessage());
         }
-        Log.i("Ylva", "Ecnrypted :" + decrypt);
+        Log.i("Ylva", "decrypt :" + decrypt);
 
         return decrypt;
     }
