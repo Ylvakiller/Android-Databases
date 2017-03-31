@@ -32,6 +32,7 @@ public class Encryption {
 	        kgen.init(128, sr); // 192 and 256 bits may not be available
 	        SecretKey skey = kgen.generateKey();
 	        byte[] raw = skey.getEncoded();
+	        System.out.println("Raw Key =\t" + raw.toString());
 	        return raw;
 	    }
 
