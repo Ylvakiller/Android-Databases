@@ -14,7 +14,7 @@ import com.sun.net.httpserver.HttpServer;
 public class ServerRunner {
 
 	public static HttpServer server;
-	private final static int port = 8000;
+	private final static int port = 2026;
 	private static int connections = 0;
 
 	public ServerRunner() {
@@ -25,6 +25,8 @@ public class ServerRunner {
 		ConsoleCommands console = new ConsoleCommands();
 		console.start();
 		String address = InetAddress.getLocalHost().getHostAddress();
+		//address = "asa.fawlty.nl";
+		address = "192.168.0.101";
 		System.out.println(address);
 		server = HttpServer.create(new InetSocketAddress(address,port), 0);
 		/*HttpContext context = server.createContext("/test");
@@ -39,13 +41,13 @@ public class ServerRunner {
 
 	static class InfoHandler implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {
-			System.out.println("someone is connecting!");
+			System.out.println("someone is connecting");
 			String data = "Leave me alone!";
 			
 			connections++;
 			System.out.println("This is connection number = " + connections);
 			try {
-				getParameters(t);
+				data = decrypt(querryhandler(getParameters(t)));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -61,7 +63,7 @@ public class ServerRunner {
 	}
 	
 	
-	private static void getParameters(HttpExchange exchange) throws Exception{
+	private static String getParameters(HttpExchange exchange) throws Exception{
 		Headers reqHeaders = exchange.getRequestHeaders();
 		String contentType = reqHeaders.getFirst("Content-Type");
 		String encoding = "ISO-8859-1";
@@ -79,7 +81,53 @@ public class ServerRunner {
 		} finally {
 		    in.close();
 		}
-		System.out.println("Post querry = \t" + qry);
 		
+		return qry;
+	}
+	
+	/**
+	 * This method will distinguish  between the different commands send in the htmlparameters
+	 * @param qry the raw parameters
+	 */
+	private static String querryhandler(String qry){
+		if (!qry.contains(":")){
+			//Invalid Command
+			return "Invalid command request";
+		}else{
+			String result = "Invalid command request";
+			//Possible command found
+			String type = qry.substring(0, qry.indexOf(":"));
+			System.out.println("Found command:" + type);
+			switch (type){
+			case "GET":
+				System.out.println("recognised Get");
+				 result = getHandler(qry.substring(qry.indexOf(":")+1));
+				break;
+			case "SET":
+				
+			}
+			return result;
+		}
+	}
+	
+	private static String getHandler(String command){
+		String returnString = command;
+		System.out.println(command);
+		System.out.println("Obtained:GET " + command);
+		switch (command){//Switch to see what needs to be gotten
+		case "dbDate":
+			returnString = Communication.getDate();
+			break;
+		}
+		return returnString;
+	}
+	
+	private static String decrypt(String message){
+		System.out.println("Raw querry = \t|" + message);
+		//Encryption encryption = Encryption.getDefault("Key", "Salt", new byte[16]);
+		//message = encryption.decryptOrNull(message);
+		System.out.println("decrypted querry = \t|" + message);
+		
+		return message;
 	}
 }

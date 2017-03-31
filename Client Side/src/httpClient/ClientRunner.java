@@ -8,8 +8,8 @@ import java.net.URL;
 
 public class ClientRunner {
 
-	private final static int port = 8000;
-    private final static String ip = "192.168.0.101";
+	private final static int port = 2026;
+    private final static String ip = "asa.fawlty.nl";
     private final static String USER_AGENT = "Mozilla/5.0";
     
 	public ClientRunner() {
