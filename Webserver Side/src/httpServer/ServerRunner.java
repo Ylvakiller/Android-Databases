@@ -127,7 +127,7 @@ public class ServerRunner {
 		System.out.println("Raw querry = \t" + message);
 		System.out.println("End of Message");
 		try {
-			message = Encryption.decrypt("test",message);
+			message = Encryption.decrypt("",message);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

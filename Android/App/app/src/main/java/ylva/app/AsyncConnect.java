@@ -76,7 +76,7 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
 
         String encrypted = null;
         try {
-            encrypted = Encryption.encrypt("test", str);
+            encrypted = Encryption.encrypt("", str);
         } catch (Exception e) {
             Log.d("Ylva","Error|"+e.getMessage());
         }
@@ -88,7 +88,7 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
 
         String decrypt = null;
         try {
-            decrypt = Encryption.decrypt("test", str);
+            decrypt = Encryption.decrypt("", str);
         } catch (Exception e) {
             Log.d("Ylva","Error|"+e.getMessage());
         }
