@@ -121,7 +121,7 @@ public class ServerRunner {
 			e1.printStackTrace();
 		}
 		try {
-			System.out.println("Raw Querry \t"+ new String(qry,"ISO-8859-1" ) );
+			System.out.println("Raw Querry \t|"+ new String(qry,"ISO-8859-1" ) + "|" );
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
