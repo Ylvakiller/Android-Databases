@@ -114,6 +114,7 @@ public class ServerRunner {
 	 */
 	private static byte[] querryhandler(byte[] qry){
 		String Stringqry = "";
+		String temp = "";
 		try {
 			Stringqry = new String(qry, "ISO-8859-1");
 		} catch (UnsupportedEncodingException e1) {
@@ -121,8 +122,9 @@ public class ServerRunner {
 			e1.printStackTrace();
 		}
 		try {
-			System.out.println("Raw Querry \t|"+ new String(qry,"ISO-8859-1" ).replace("\n", "").replace("\r", "") + "|" );
-			System.out.println("Length " + new String(qry,"ISO-8859-1" ).replace("\n", "").replace("\r", "").length());
+			temp = new String(qry,"ISO-8859-1" ).replace("\n", "").replace("\r", "");
+			System.out.println("Raw Querry \t|"+temp + "|" );
+			System.out.println("Length " +temp.length());
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -132,7 +134,7 @@ public class ServerRunner {
 			return key.getPublic().getEncoded();
 		}else{
 			try {
-				System.out.println("non base 64 version" + Base64.getMimeDecoder().decode(new String(qry,"ISO-8859-1" ).replace("\n", "").replace("\r", "")));
+				System.out.println("non base 64 version" + Base64.getMimeDecoder().decode(temp));
 				Stringqry = new String (Encryption.decrypt(Base64.getMimeDecoder().decode(qry)), "ISO-8859-1");
 				System.out.println("Decrypted: " + Stringqry);
 			} catch (Exception e) {
