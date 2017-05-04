@@ -47,7 +47,7 @@ public class ServerRunner {
 	static class InfoHandler implements HttpHandler {
 		public void handle(HttpExchange connection) throws IOException {
 			System.out.println("someone is connecting");
-			String data = "Leave me alone!";
+			byte[] data = "Leave me alone!".getBytes();
 			
 			connections++;
 			System.out.println("This is connection number = " + connections);
@@ -59,9 +59,9 @@ public class ServerRunner {
 			}
 			
 			System.out.println("Responding with the following data");
-			connection.sendResponseHeaders(200, data.length());
+			connection.sendResponseHeaders(200, data.length);
 			OutputStream os = connection.getResponseBody();
-			os.write(data.getBytes());
+			os.write(data);
 			os.close();
 			
 		}
@@ -99,15 +99,15 @@ public class ServerRunner {
 	 * This method will distinguish  between the different commands send in the htmlparameters
 	 * @param qry the raw parameters
 	 */
-	private static String querryhandler(String qry){
+	private static byte[] querryhandler(String qry){
 		System.out.println("Raw Querry \t"+ qry );
 		if (qry.contains("PublicKey")){
 			System.out.println("Recognised request for public key");
-			return Base64.getEncoder().encodeToString(ServerRunner.key.getPublic().getEncoded());
+			return ServerRunner.key.getPublic().getEncoded();
 		}
 		if (qry.contains(":")){
 			//Invalid Command
-			return "Invalid command request";
+			return "Invalid command request".getBytes();
 		}else{
 			String result = "Invalid command request";
 			//Possible command found
@@ -116,14 +116,14 @@ public class ServerRunner {
 			switch (type){
 			case "POST":
 				System.out.println("recognised POST");
-				result = Base64.getEncoder().encodeToString(ServerRunner.key.getPublic().getEncoded());
+				//result = Base64.getEncoder().encodeToString(ServerRunner.key.getPublic().getEncoded());
 				 //result = getHandler(qry.substring(qry.indexOf(":")+1));
 				break;
 			default:
 				break;
 				
 			}
-			return result;
+			return result.getBytes();
 		}
 	}
 	
