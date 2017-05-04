@@ -99,6 +99,10 @@ public class ServerRunner {
 	 */
 	private static String querryhandler(String qry){
 		System.out.println("Raw Querry \t"+ qry );
+		if (qry.contains("PublicKey")){
+			System.out.println("Recognised request for public key");
+			return ServerRunner.key.getPublic().toString();
+		}
 		if (qry.contains(":")){
 			//Invalid Command
 			return "Invalid command request";
