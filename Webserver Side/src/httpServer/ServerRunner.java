@@ -74,39 +74,42 @@ public class ServerRunner {
 	 * @return
 	 * @throws Exception
 	 */
-	private static String getParameters(HttpExchange exchange) throws Exception{
+	private static byte[] getParameters(HttpExchange exchange) throws Exception{
 		Headers reqHeaders = exchange.getRequestHeaders();
 		String contentType = reqHeaders.getFirst("Content-Type");
 		String encoding = "ISO-8859-1";
 		
 		// read the query string from the request body
-		String qry;
+		 ByteArrayOutputStream out;
 		InputStream in = exchange.getRequestBody();
 		try {
-		    ByteArrayOutputStream out = new ByteArrayOutputStream();
+		    out = new ByteArrayOutputStream();
 		    byte buf[] = new byte[4096];
 		    for (int n = in.read(buf); n > 0; n = in.read(buf)) {
 		        out.write(buf, 0, n);
 		    }
-		    qry = new String(out.toByteArray(), encoding);
 		} finally {
 		    in.close();
 		}
 		
-		return qry;
+		return out.toByteArray();
 	}
 	
 	/**
 	 * This method will distinguish  between the different commands send in the htmlparameters
 	 * @param qry the raw parameters
 	 */
-	private static byte[] querryhandler(String qry){
+	private static byte[] querryhandler(byte[] qry){
 		System.out.println("Raw Querry \t"+ qry );
-		if (qry.contains("PublicKey")){
+		if (qry.toString().contains("PublicKey")){
 			System.out.println("Recognised request for public key");
 			return ServerRunner.key.getPublic().getEncoded();
 		}
-		if (qry.contains(":")){
+		return "Did not find anything".getBytes();
+		/*else{//This means the querry first needs to be decoded
+			
+		}
+		/*if (qry.contains(":")){
 			//Invalid Command
 			return "Invalid command request".getBytes();
 		}else{
@@ -125,7 +128,7 @@ public class ServerRunner {
 				
 			}
 			return result.getBytes();
-		}
+		}*/
 	}
 	
 	private static String getHandler(String command){

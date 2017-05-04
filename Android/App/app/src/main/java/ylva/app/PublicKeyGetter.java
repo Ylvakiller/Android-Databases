@@ -5,6 +5,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -49,14 +50,20 @@ public class PublicKeyGetter extends AsyncTask {
 
 
             InputStream br = (con.getInputStream());
-            byte[] encKey = new byte[br.available()];
-            br.read(encKey);
+            byte[] encKey = new byte[8192];
+            int bytesRead;
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            while ((bytesRead=br.read(encKey))!= -1){
+                output.write(encKey, 0, bytesRead);
+            }
+
+            encKey = output.toByteArray();
             br.close();
 
             //byte[]temp= Base64.decode(encKey);
             Log.d("Ylva", "Attempting to convert the following into key");
-            Log.d("Ylva", Base64.decode(encKey, Base64.NO_WRAP).toString());
-            //PublicKeyGetter.serverKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(encKey, Base64.NO_WRAP)));
+            Log.d("Ylva", encKey.toString() + "\n");
+            PublicKeyGetter.serverKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encKey));
             Log.d("Ylva", "Saved a new public key");
 
         } catch (Exception ex) {
