@@ -75,24 +75,23 @@ public class ServerRunner {
 	 * @throws Exception
 	 */
 	private static byte[] getParameters(HttpExchange exchange) throws Exception{
-		Headers reqHeaders = exchange.getRequestHeaders();
-		String contentType = reqHeaders.getFirst("Content-Type");
-		String encoding = "ISO-8859-1";
 		
 		// read the query string from the request body
-		 ByteArrayOutputStream out;
+		 ByteArrayOutputStream output;
 		InputStream in = exchange.getRequestBody();
 		try {
-		    out = new ByteArrayOutputStream();
-		    byte buf[] = new byte[4096];
-		    for (int n = in.read(buf); n > 0; n = in.read(buf)) {
-		        out.write(buf, 0, n);
-		    }
+		    
+		    byte[] encKey = new byte[8192];
+            int bytesRead;
+            output = new ByteArrayOutputStream();
+            while ((bytesRead=in.read(encKey))!= -1){
+                output.write(encKey, 0, bytesRead);
+            }
 		} finally {
 		    in.close();
 		}
 		
-		return out.toByteArray();
+		return output.toByteArray();
 	}
 	
 	/**
