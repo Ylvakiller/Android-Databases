@@ -27,7 +27,7 @@ public class ServerRunner {
 		console.start();
 		String address = InetAddress.getLocalHost().getHostAddress();
 		//address = "asa.fawlty.nl";
-		address = "192.168.0.101";
+		address = "192.168.0.105";
 		System.out.println(address);
 		key = Encryption.generateKeyPair();
 		System.out.println("Key genned");

@@ -22,7 +22,7 @@ import java.net.URL;
 public class Connect  {
 
     protected final static int port = 2026;
-    protected final static String ip = "192.168.0.101";
+    protected final static String ip = "82.72.107.157";
     protected final static String USER_AGENT = "Mozilla/5.0";
 
 
