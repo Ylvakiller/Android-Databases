@@ -124,7 +124,8 @@ public class ServerRunner {
 			e1.printStackTrace();
 		}
 		try {
-			temp = new String(qry,"ISO-8859-1" ).replace("\n", "").replace("\r", "");
+			temp = new String(qry,"ISO-8859-1" );
+			temp = temp.substring(0, temp.length()-1);
 			System.out.println("Raw Querry \t|"+temp + "|" );
 			System.out.println("Length " +temp.length());
 		} catch (UnsupportedEncodingException e1) {

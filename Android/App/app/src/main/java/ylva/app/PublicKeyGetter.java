@@ -96,6 +96,7 @@ public class PublicKeyGetter extends AsyncTask {
             Log.d("Ylva", Integer.toString(toSend.length));
             Log.d("Ylva", "Encrypted test \n" + new String(toSend, "ISO-8859-1"));
             Log.d("Ylva", "Base 64 encodeded test: " + Base64.encodeToString(toSend, Base64.DEFAULT));
+            Log.d("Ylva", "Base64length " +  Base64.encodeToString(toSend, Base64.DEFAULT).length());
             wr.write(Base64.encodeToString(toSend, Base64.DEFAULT).getBytes());
             wr.flush();
             wr.close();
