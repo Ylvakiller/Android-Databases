@@ -138,6 +138,7 @@ public class ServerRunner {
 		}else{
 			try {
 				//Decoding to non base64
+				temp = new String(qry,"UTF-8" );
 				temp = new String(Base64.getUrlDecoder().decode(temp));
 				System.out.println("non base 64 version with length " + temp.length() + "\n" + temp);
 				Stringqry = new String (Encryption.decrypt(temp.getBytes("UTF-8")));
