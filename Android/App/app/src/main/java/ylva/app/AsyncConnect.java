@@ -36,13 +36,13 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
             con.setRequestProperty("User-Agent", Connect.USER_AGENT);
             con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
 
-            String finalMessage;
+            byte[] finalMessage;
             String message = parameters[0].message + ":" + parameters[0].username + ":" + parameters[0].password;
             Log.i("Ylva", "message :" + message);
-            finalMessage = Encryption.encrypt(PublicKeyGetter.serverKey,message.getBytes()).toString();
+            finalMessage = Encryption.encrypt(PublicKeyGetter.serverKey,message.getBytes());
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            wr.writeBytes(finalMessage);
+            wr.write(finalMessage);
             wr.flush();
             wr.close();
 

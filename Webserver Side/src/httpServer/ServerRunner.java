@@ -125,6 +125,7 @@ public class ServerRunner {
 		}else{
 			try {
 				Stringqry = new String (Encryption.decrypt(qry), "ISO-8859-1");
+				System.out.println("Decrypted: " + Stringqry);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

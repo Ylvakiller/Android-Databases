@@ -64,7 +64,13 @@ public class PublicKeyGetter extends AsyncTask {
             Log.d("Ylva", "Attempting to convert the following into key");
             Log.d("Ylva", encKey.toString() + "\n");
             PublicKeyGetter.serverKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encKey));
+            Log.d("Ylva", serverKey.toString());
             Log.d("Ylva", "Saved a new public key");
+            Log.d("Ylva", "Testing a message");
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+            wr.write(Encryption.encrypt(PublicKeyGetter.serverKey, "test".getBytes()));
+            wr.flush();
+            wr.close();
 
         } catch (Exception ex) {
             Log.d("Ylva","Error|"+ex.getMessage());
