@@ -30,14 +30,13 @@ public class Encryption {
         return encryptedBytes;
     }
 
-    public static byte[] decrypt(byte[] privateKey, byte[] inputData)
+    public static byte[] decrypt(byte[] inputData)
             throws Exception {
 
-        PrivateKey key = KeyFactory.getInstance(ALGORITHM)
-                .generatePrivate(new PKCS8EncodedKeySpec(privateKey));
+        
 
         Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.PRIVATE_KEY, key);
+        cipher.init(Cipher.PRIVATE_KEY, ServerRunner.key.getPrivate());
 
         byte[] decryptedBytes = cipher.doFinal(inputData);
 

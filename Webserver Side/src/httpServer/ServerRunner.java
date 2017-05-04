@@ -19,7 +19,7 @@ public class ServerRunner {
 	public static HttpServer server;
 	private final static int port = 2026;
 	private static int connections = 0;
-	private static KeyPair key;
+	public static KeyPair key;
 	public ServerRunner() {
 		// TODO Auto-generated constructor stub
 	}
@@ -104,7 +104,15 @@ public class ServerRunner {
 		if (qry.contains("PublicKey")){
 			System.out.println("Recognised request for public key");
 			return key.getPublic().getEncoded();
+		}else{
+			try {
+				qry = Encryption.decrypt(qry.getBytes()).toString();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		System.out.println(qry);
 		if (qry.contains(":")){
 			//Invalid Command
 			return "Invalid command request".getBytes();
