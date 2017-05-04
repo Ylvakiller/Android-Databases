@@ -103,7 +103,7 @@ public class ServerRunner {
 		System.out.println("Raw Querry \t"+ qry );
 		if (qry.contains("PublicKey")){
 			System.out.println("Recognised request for public key");
-			return "test".getBytes();
+			return key.getPublic().getEncoded();
 		}
 		if (qry.contains(":")){
 			//Invalid Command
