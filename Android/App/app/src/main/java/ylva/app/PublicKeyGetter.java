@@ -92,12 +92,12 @@ public class PublicKeyGetter extends AsyncTask {
 
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            byte[] toSend = Encryption.encrypt(serverKey, "Test".getBytes());
+            byte[] toSend = Encryption.encrypt(serverKey, "Test".getBytes("UTF-8"));
             Log.d("Ylva", Integer.toString(toSend.length));
-            Log.d("Ylva", "Encrypted test \n" + new String(toSend, "ISO-8859-1"));
-            Log.d("Ylva", "Base 64 encodeded test: " + Base64.encodeToString(toSend, Base64.DEFAULT));
-            Log.d("Ylva", "Base64length " +  Base64.encodeToString(toSend, Base64.DEFAULT).length());
-            wr.write(Base64.encodeToString(toSend, Base64.DEFAULT).getBytes());
+            Log.d("Ylva", "Encrypted test \n" + new String(toSend, "UTF-8"));
+            Log.d("Ylva", "Base 64 encodeded test: " + Base64.encodeToString(toSend, Base64.URL_SAFE));
+            Log.d("Ylva", "Base64length " +  Base64.encodeToString(toSend, Base64.URL_SAFE).length());
+            wr.write(Base64.encodeToString(toSend, Base64.URL_SAFE).getBytes());
             wr.flush();
             wr.close();
 
