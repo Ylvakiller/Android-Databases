@@ -3,6 +3,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
@@ -73,8 +74,16 @@ public class ServerRunner {
 	 * @return
 	 * @throws Exception
 	 */
-	private static String getParameters(HttpExchange exchange) throws Exception{
-		Headers reqHeaders = exchange.getRequestHeaders();
+	private static byte[] getParameters(HttpExchange exchange) throws Exception{
+		InputStream br = exchange.getRequestBody(); 
+		byte[] encKey = new byte[8192];
+         int bytesRead;
+         ByteArrayOutputStream output = new ByteArrayOutputStream();
+         while ((bytesRead=br.read(encKey))!= -1){
+             output.write(encKey, 0, bytesRead);
+         }
+         return output.toByteArray();
+		/*Headers reqHeaders = exchange.getRequestHeaders();
 		String contentType = reqHeaders.getFirst("Content-Type");
 		String encoding = "ISO-8859-1";
 		
@@ -92,34 +101,41 @@ public class ServerRunner {
 		    in.close();
 		}
 		
-		return qry;
+		return out;*/
 	}
 	
 	/**
 	 * This method will distinguish  between the different commands send in the htmlparameters
 	 * @param qry the raw parameters
 	 */
-	private static byte[] querryhandler(String qry){
+	private static byte[] querryhandler(byte[] qry){
+		String Stringqry = "";
+		try {
+			Stringqry = new String(qry, "ISO-8859-1");
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		System.out.println("Raw Querry \t"+ qry );
-		if (qry.contains("PublicKey")){
+		if (Stringqry.contains("PublicKey")){
 			System.out.println("Recognised request for public key");
 			return key.getPublic().getEncoded();
 		}else{
 			try {
-				qry = Encryption.decrypt(qry.getBytes()).toString();
+				Stringqry = new String (Encryption.decrypt(qry), "ISO-8859-1");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		System.out.println(qry);
-		if (qry.contains(":")){
+		if (Stringqry.contains(":")){
 			//Invalid Command
 			return "Invalid command request".getBytes();
 		}else{
 			String result = "Invalid command request";
 			//Possible command found
-			String type = qry.substring(0, qry.indexOf(":"));
+			String type = Stringqry.substring(0, Stringqry.indexOf(":"));
 			System.out.println("Found command:" + type);
 			switch (type){
 			case "POST":
