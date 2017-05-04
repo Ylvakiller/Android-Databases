@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         PublicKeyGetter key = new PublicKeyGetter();
         Log.d("Ylva", "Obtained Public Key" + key.execute());
         Log.d("Ylva", "Testing key");
-        Connect.testServer();
+        //Connect.testServer();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
