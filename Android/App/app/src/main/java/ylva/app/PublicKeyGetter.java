@@ -67,10 +67,8 @@ public class PublicKeyGetter extends AsyncTask {
             Log.d("Ylva", serverKey.toString());
             Log.d("Ylva", "Saved a new public key");
             Log.d("Ylva", "Testing a message");
-            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            wr.write(Encryption.encrypt(PublicKeyGetter.serverKey, "test".getBytes()));
-            wr.flush();
-            wr.close();
+            test();
+
 
         } catch (Exception ex) {
             Log.d("Ylva","Error|"+ex.getMessage());
@@ -78,5 +76,46 @@ public class PublicKeyGetter extends AsyncTask {
 
         Long Status = new Long(0);
         return reply;
+    }
+    private static void test(){
+        try {
+            URL url = new URL("http://" + Connect.ip + ":" + Connect.port + "/data");
+
+            //URL url = new URL("https://selfsolve.apple.com/wcResults.do");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+
+            //HTTP request header
+            con.setRequestMethod("POST");
+            con.setRequestProperty("User-Agent", Connect.USER_AGENT);
+            con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+
+
+            con.setDoOutput(true);
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+            byte[] toSend = Encryption.encrypt(serverKey, "Test".getBytes());
+            Log.d("Ylva", "Encrypted test \n" + new String(toSend, "ISO-8859-1"));
+            wr.write(Base64.encode(toSend, Base64.URL_SAFE));
+            wr.flush();
+            wr.close();
+
+            int responseCode = con.getResponseCode();
+            Log.d("Ylva", ("Sending 'POST' to : " + url));
+            Log.d("Ylva", ("Response code " + responseCode));
+
+
+            InputStream br = (con.getInputStream());
+            byte[] encKey = new byte[8192];
+            int bytesRead;
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            while ((bytesRead = br.read(encKey)) != -1) {
+                output.write(encKey, 0, bytesRead);
+            }
+
+            encKey = output.toByteArray();
+            br.close();
+            Log.d("Ylva", "response/n" + new String(encKey,"ISO-8859-1" ));
+        }catch (Exception e){
+
+        }
     }
 }

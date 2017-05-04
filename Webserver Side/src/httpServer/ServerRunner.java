@@ -84,7 +84,9 @@ public class ServerRunner {
          while ((bytesRead=br.read(encKey))!= -1){
              output.write(encKey, 0, bytesRead);
          }
-         return output.toByteArray();
+         encKey = output.toByteArray();
+         br.close();
+         return encKey;
 		/*Headers reqHeaders = exchange.getRequestHeaders();
 		String contentType = reqHeaders.getFirst("Content-Type");
 		String encoding = "ISO-8859-1";
@@ -118,13 +120,18 @@ public class ServerRunner {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		System.out.println("Raw Querry \t"+ qry );
+		try {
+			System.out.println("Raw Querry \t"+ new String(qry,"ISO-8859-1" ) );
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		if (Stringqry.contains("PublicKey")){
 			System.out.println("Recognised request for public key");
 			return key.getPublic().getEncoded();
 		}else{
 			try {
-				Stringqry = new String (Encryption.decrypt(qry), "ISO-8859-1");
+				Stringqry = new String (Encryption.decrypt(Base64.getUrlDecoder().decode(qry)), "ISO-8859-1");
 				System.out.println("Decrypted: " + Stringqry);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
