@@ -1,5 +1,6 @@
 package ylva.app;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -13,13 +14,30 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+
 public class MainActivity extends AppCompatActivity {
 
+    private static Context context;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d("Ylva","App started");
+        context = this.getApplicationContext();
 
         super.onCreate(savedInstanceState);
+        Log.d("Ylva", "Generating Keypair");
+        try {
+            KeyPair generatedKeyPair = Encryption.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        }
+        Log.d("Ylva", "Getting public key from server");
+        PublicKey key = new PublicKey();
+        Log.d("Ylva", "Obtained Public Key" + key.execute());
         Log.d("Ylva", "");
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -42,12 +60,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         Button btnDate = (Button)findViewById(R.id.btnDate);
-        btnDate.setText(Connect.getDate());//Set the date on the button in the bottom to always be the last date stored in the database
-
+        //btnDate.setText(Connect.getDate());//Set the date on the button in the bottom to always be the last date stored in the database
+        btnDate.setText("test");
 
         //RelativeLayout pb = (RelativeLayout)findViewById(R.id.loadingPanel);
         //pb.setVisibility(View.INVISIBLE);
-        Log.d("Ylva", "Hidden something");
+
     }
 
     @Override
@@ -70,5 +88,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public static Context getContext(){
+        return context;
     }
 }

@@ -1,88 +1,61 @@
 package httpServer;
 
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class Encryption {
-	 private final static String HEX = "0123456789ABCDEF";
+	private static final String ALGORITHM = "RSA";
 
-	    public static String encrypt(String seed, String cleartext)
-	            throws Exception {
-	        byte[] rawKey = getRawKey(seed.getBytes());
-	        byte[] result = encrypt(rawKey, cleartext.getBytes());
-	        return toHex(result);
-	    }
+    public static byte[] encrypt(byte[] publicKey, byte[] inputData)
+            throws Exception {
 
-	    public static String decrypt(String seed, String encrypted)
-	            throws Exception {
-	        byte[] rawKey = getRawKey(seed.getBytes());
-	        byte[] enc = toByte(encrypted);
-	        byte[] result = decrypt(rawKey, enc);
-	        return new String(result);
-	    }
+        PublicKey key = KeyFactory.getInstance(ALGORITHM)
+                .generatePublic(new X509EncodedKeySpec(publicKey));
 
-	    private static byte[] getRawKey(byte[] seed) throws Exception {
-	        KeyGenerator kgen = KeyGenerator.getInstance("AES");
-	        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-	        sr.setSeed(seed);
-	        kgen.init(128, sr); // 192 and 256 bits may not be available
-	        SecretKey skey = kgen.generateKey();
-	        byte[] raw = skey.getEncoded();
-	        System.out.println("Raw Key =\t" + raw.toString());
-	        return raw;
-	    }
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(Cipher.PUBLIC_KEY, key);
 
-	    private static byte[] encrypt(byte[] raw, byte[] clear) throws Exception {
-	        SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
-	        Cipher cipher = Cipher.getInstance("AES");
-	        cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
-	        byte[] encrypted = cipher.doFinal(clear);
-	        return encrypted;
-	    }
+        byte[] encryptedBytes = cipher.doFinal(inputData);
 
-	    private static byte[] decrypt(byte[] raw, byte[] encrypted)
-	            throws Exception {
-	        SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
-	        Cipher cipher = Cipher.getInstance("AES");
-	        cipher.init(Cipher.DECRYPT_MODE, skeySpec);
-	        byte[] decrypted = cipher.doFinal(encrypted);
-	        return decrypted;
-	    }
+        return encryptedBytes;
+    }
 
-	    public static String toHex(String txt) {
-	        return toHex(txt.getBytes());
-	    }
+    public static byte[] decrypt(byte[] privateKey, byte[] inputData)
+            throws Exception {
 
-	    public static String fromHex(String hex) {
-	        return new String(toByte(hex));
-	    }
+        PrivateKey key = KeyFactory.getInstance(ALGORITHM)
+                .generatePrivate(new PKCS8EncodedKeySpec(privateKey));
 
-	    public static byte[] toByte(String hexString) {
-	        int len = hexString.length() / 2;
-	        byte[] result = new byte[len];
-	        for (int i = 0; i < len; i++)
-	            result[i] = Integer.valueOf(hexString.substring(2 * i, 2 * i + 2),
-	                    16).byteValue();
-	        return result;
-	    }
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(Cipher.PRIVATE_KEY, key);
 
-	    public static String toHex(byte[] buf) {
-	        if (buf == null)
-	            return "";
+        byte[] decryptedBytes = cipher.doFinal(inputData);
 
-	        StringBuffer result = new StringBuffer(2 * buf.length);
-	        for (int i = 0; i < buf.length; i++) {
-	            appendHex(result, buf[i]);
-	        }
+        return decryptedBytes;
+    }
 
-	        return result.toString();
-	    }
+    public static KeyPair generateKeyPair()
+            throws NoSuchAlgorithmException, NoSuchProviderException {
 
-	    private static void appendHex(StringBuffer sb, byte b) {
-	        sb.append(HEX.charAt((b >> 4) & 0x0f)).append(HEX.charAt(b & 0x0f));
-	    }
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance(ALGORITHM);
+
+        SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+
+        // 512 is keysize
+        keyGen.initialize(512, random);
+
+        KeyPair generateKeyPair = keyGen.generateKeyPair();
+        return generateKeyPair;
+    }
+
 	}

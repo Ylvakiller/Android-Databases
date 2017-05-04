@@ -10,13 +10,14 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import java.security.KeyPair;
 
 public class ServerRunner {
 
 	public static HttpServer server;
 	private final static int port = 2026;
 	private static int connections = 0;
-
+	private static KeyPair key;
 	public ServerRunner() {
 		// TODO Auto-generated constructor stub
 	}
@@ -28,6 +29,8 @@ public class ServerRunner {
 		//address = "asa.fawlty.nl";
 		address = "192.168.0.101";
 		System.out.println(address);
+		key = Encryption.generateKeyPair();
+		System.out.println("Key genned");
 		server = HttpServer.create(new InetSocketAddress(address,port), 0);
 		/*HttpContext context = server.createContext("/test");
 		context.getFilters().add(new ParameterFilter());*/
@@ -40,29 +43,34 @@ public class ServerRunner {
 	}
 
 	static class InfoHandler implements HttpHandler {
-		public void handle(HttpExchange t) throws IOException {
+		public void handle(HttpExchange connection) throws IOException {
 			System.out.println("someone is connecting");
 			String data = "Leave me alone!";
 			
 			connections++;
 			System.out.println("This is connection number = " + connections);
 			try {
-				data = querryhandler(decrypt(getParameters(t)));
+				data = querryhandler(getParameters(connection));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
 			
-			t.sendResponseHeaders(200, data.length());
-			OutputStream os = t.getResponseBody();
+			connection.sendResponseHeaders(200, data.length());
+			OutputStream os = connection.getResponseBody();
 			os.write(data.getBytes());
 			os.close();
 			
 		}
 	}
 	
-	
+	/**
+	 * Gets the HTTP paramaters from the given HttpExchange (connection)
+	 * @param exchange
+	 * @return
+	 * @throws Exception
+	 */
 	private static String getParameters(HttpExchange exchange) throws Exception{
 		Headers reqHeaders = exchange.getRequestHeaders();
 		String contentType = reqHeaders.getFirst("Content-Type");
@@ -100,11 +108,13 @@ public class ServerRunner {
 			String type = qry.substring(0, qry.indexOf(":"));
 			System.out.println("Found command:" + type);
 			switch (type){
-			case "GET":
-				System.out.println("recognised Get");
-				 result = getHandler(qry.substring(qry.indexOf(":")+1));
+			case "POST":
+				System.out.println("recognised POST");
+				result = ServerRunner.key.getPublic().toString();
+				 //result = getHandler(qry.substring(qry.indexOf(":")+1));
 				break;
-			case "SET":
+			default:
+				break;
 				
 			}
 			return result;
@@ -127,7 +137,7 @@ public class ServerRunner {
 		System.out.println("Raw querry = \t" + message);
 		System.out.println("End of Message");
 		try {
-			message = Encryption.decrypt("",message);
+			//message = Encryption.decrypt("",message);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

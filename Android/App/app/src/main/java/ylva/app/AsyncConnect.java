@@ -19,6 +19,7 @@ import javax.crypto.IllegalBlockSizeException;
 
 /**
  * This class will do the actaul communication with the webserver, using the parameters in AsyncParam
+ * This is meant for database connection only, not for getting the key
  */
 public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
     @Override
@@ -76,7 +77,7 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
 
         String encrypted = null;
         try {
-            encrypted = Encryption.encrypt("", str);
+            //encrypted = Encryption.encrypt("", str);
         } catch (Exception e) {
             Log.d("Ylva","Error|"+e.getMessage());
         }
@@ -88,7 +89,7 @@ public class AsyncConnect extends AsyncTask<AsyncParam, Void, String> {
 
         String decrypt = null;
         try {
-            decrypt = Encryption.decrypt("", str);
+           // decrypt = Encryption.decrypt("", str);
         } catch (Exception e) {
             Log.d("Ylva","Error|"+e.getMessage());
         }
