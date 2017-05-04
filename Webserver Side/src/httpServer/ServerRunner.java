@@ -137,8 +137,10 @@ public class ServerRunner {
 			return key.getPublic().getEncoded();
 		}else{
 			try {
-				System.out.println("non base 64 version" + new String(Base64.getMimeDecoder().decode(temp)));
-				Stringqry = new String (Encryption.decrypt(new String(Base64.getMimeDecoder().decode(qry)).getBytes("UTF-8")), "ISO-8859-1");
+				//Decoding to non base64
+				temp = new String(Base64.getMimeDecoder().decode(temp));
+				System.out.println("non base 64 version with length " + temp.length() + "\n" + temp);
+				Stringqry = new String (Encryption.decrypt(temp.getBytes("UTF-8")));
 				System.out.println("Decrypted: " + Stringqry);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
