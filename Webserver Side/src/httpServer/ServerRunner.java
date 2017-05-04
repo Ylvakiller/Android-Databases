@@ -118,13 +118,13 @@ public class ServerRunner {
 		String Stringqry = "";
 		String temp = "";
 		try {
-			Stringqry = new String(qry, "UTF-8");
+			Stringqry = new String(qry, "ISO-8859-1");
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		try {
-			temp = new String(qry,"UTF-8" );
+			temp = new String(qry,"ISO-8859-1" );
 			temp = temp.substring(0, temp.length());
 			System.out.println("Raw Querry \t|"+temp + "|" );
 			System.out.println("Length " +temp.length());
@@ -138,8 +138,7 @@ public class ServerRunner {
 		}else{
 			try {
 				//Decoding to non base64
-				temp = new String(qry,"UTF-8" );
-				temp = new String(Base64.getUrlDecoder().decode(temp));
+				temp = new String(Base64.getMimeDecoder().decode(temp));
 				System.out.println("non base 64 version with length " + temp.length() + "\n" + temp);
 				Stringqry = new String (Encryption.decrypt(temp.getBytes("UTF-8")));
 				System.out.println("Decrypted: " + Stringqry);
