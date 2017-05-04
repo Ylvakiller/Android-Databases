@@ -42,6 +42,8 @@ public class ServerRunner {
 		server.setExecutor(null); // creates a default executor
 		server.start();
 		System.out.println("Server Started");
+		System.out.println("Public key");
+		System.out.println(key.getPublic().toString());
 		
 	}
 
