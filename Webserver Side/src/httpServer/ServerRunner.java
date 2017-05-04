@@ -58,7 +58,7 @@ public class ServerRunner {
 				e.printStackTrace();
 			}
 			
-			
+			System.out.println("Responding with the following data");
 			connection.sendResponseHeaders(200, data.length());
 			OutputStream os = connection.getResponseBody();
 			os.write(data.getBytes());

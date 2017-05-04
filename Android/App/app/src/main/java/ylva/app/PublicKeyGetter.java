@@ -53,10 +53,10 @@ public class PublicKeyGetter extends AsyncTask {
             br.read(encKey);
             br.close();
 
-
+            //byte[]temp= Base64.decode(encKey);
             Log.d("Ylva", "Attempting to convert the following into key");
-            //Log.d("Ylva", Base64.decode(encKey, Base64.NO_WRAP));
-            PublicKeyGetter.serverKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(encKey, Base64.NO_WRAP)));
+            Log.d("Ylva", Base64.decode(encKey, Base64.NO_WRAP).toString());
+            //PublicKeyGetter.serverKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(encKey, Base64.NO_WRAP)));
             Log.d("Ylva", "Saved a new public key");
 
         } catch (Exception ex) {
