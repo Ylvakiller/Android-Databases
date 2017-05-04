@@ -10,7 +10,9 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+
 import java.security.KeyPair;
+import java.util.Base64;
 
 public class ServerRunner {
 
@@ -101,7 +103,7 @@ public class ServerRunner {
 		System.out.println("Raw Querry \t"+ qry );
 		if (qry.contains("PublicKey")){
 			System.out.println("Recognised request for public key");
-			return ServerRunner.key.getPublic().toString();
+			return Base64.getEncoder().encodeToString(ServerRunner.key.getPublic().getEncoded());
 		}
 		if (qry.contains(":")){
 			//Invalid Command
@@ -114,7 +116,7 @@ public class ServerRunner {
 			switch (type){
 			case "POST":
 				System.out.println("recognised POST");
-				result = ServerRunner.key.getPublic().toString();
+				result = Base64.getEncoder().encodeToString(ServerRunner.key.getPublic().getEncoded());
 				 //result = getHandler(qry.substring(qry.indexOf(":")+1));
 				break;
 			default:

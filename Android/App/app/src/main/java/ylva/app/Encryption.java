@@ -17,11 +17,10 @@ public class Encryption {
 
     private static final String ALGORITHM = "RSA";
 
-    public static byte[] encrypt(byte[] publicKey, byte[] inputData)
+    public static byte[] encrypt(PublicKey key, byte[] inputData)
             throws Exception {
 
-        PublicKey key = KeyFactory.getInstance(ALGORITHM)
-                .generatePublic(new X509EncodedKeySpec(publicKey));
+        //PublicKey key = KeyFactory.getInstance(ALGORITHM).generatePublic(new X509EncodedKeySpec(publicKey));
 
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.PUBLIC_KEY, key);

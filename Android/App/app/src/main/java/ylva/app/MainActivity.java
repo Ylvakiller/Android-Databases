@@ -11,8 +11,6 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -36,9 +34,10 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         Log.d("Ylva", "Getting public key from server");
-        PublicKey key = new PublicKey();
+        PublicKeyGetter key = new PublicKeyGetter();
         Log.d("Ylva", "Obtained Public Key" + key.execute());
-        Log.d("Ylva", "");
+        Log.d("Ylva", "Testing key");
+        Connect.testServer();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

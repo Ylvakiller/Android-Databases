@@ -28,11 +28,7 @@ public class Connect  {
 
     public static void testServer(){
 
-        Log.d("Ylva", "Attempting to read the key");
-        Context context = MainActivity.getContext();
-        Log.d("Ylva", "File Location is " + context.getFilesDir());
-        Connect.writeToFile("test");
-        /*
+
         Log.d("Ylva","Testing server");
         try {
             URL url = new URL("http://" + ip + ":" + port + "/data");
@@ -41,7 +37,7 @@ public class Connect  {
             con.execute(params);
         }catch(MalformedURLException ex){
             Log.d("Ylva","Error|"+ex.getMessage());
-        }*/
+        }
 
 
 
