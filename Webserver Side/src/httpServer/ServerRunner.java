@@ -59,6 +59,7 @@ public class ServerRunner {
 			}
 			
 			System.out.println("Responding with the following data");
+			System.out.println(data.toString());
 			connection.sendResponseHeaders(200, data.length);
 			OutputStream os = connection.getResponseBody();
 			os.write(data);
