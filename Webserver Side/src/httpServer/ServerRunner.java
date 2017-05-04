@@ -26,6 +26,7 @@ public class ServerRunner {
 	}
 
 	public static void main(String[] args) throws Exception {
+		
 		ConsoleCommands console = new ConsoleCommands();
 		console.start();
 		String address = InetAddress.getLocalHost().getHostAddress();
@@ -44,7 +45,10 @@ public class ServerRunner {
 		System.out.println("Server Started");
 		System.out.println("Public key");
 		System.out.println(key.getPublic().toString());
-		
+		System.out.println("Testing base64 decoders with the string test as encoded by android");
+		System.out.println(Base64.getDecoder().decode("dGVzdA=="));
+		System.out.println(Base64.getMimeDecoder().decode("dGVzdA=="));
+		System.out.println(Base64.getUrlDecoder().decode("dGVzdA=="));
 	}
 
 	static class InfoHandler implements HttpHandler {
