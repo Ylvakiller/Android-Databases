@@ -20,7 +20,6 @@ public class ServerRunner {
 	public static HttpServer server;
 	private final static int port = 2026;
 	private static int connections = 0;
-	public static KeyPair key;
 	public ServerRunner() {
 		// TODO Auto-generated constructor stub
 	}
@@ -33,19 +32,12 @@ public class ServerRunner {
 		//address = "asa.fawlty.nl";
 		address = "192.168.0.105";
 		System.out.println(address);
-		key = Encryption.generateKeyPair();
-		System.out.println("Key genned");
 		server = HttpServer.create(new InetSocketAddress(address,port), 0);
-		/*HttpContext context = server.createContext("/test");
-		context.getFilters().add(new ParameterFilter());*/
 		System.out.println(server.getAddress().getAddress().getHostAddress());
 		server.createContext("/data", new InfoHandler());
 		server.setExecutor(null); // creates a default executor
 		server.start();
 		System.out.println("Server Started");
-		System.out.println("Public key");
-		System.out.println(key.getPublic().toString());
-		System.out.println("Testing base64 decoders with the string test as encoded by android");
 		
 	}
 
@@ -89,25 +81,6 @@ public class ServerRunner {
          encKey = output.toByteArray();
          br.close();
          return encKey;
-		/*Headers reqHeaders = exchange.getRequestHeaders();
-		String contentType = reqHeaders.getFirst("Content-Type");
-		String encoding = "ISO-8859-1";
-		
-		// read the query string from the request body
-		String qry;
-		InputStream in = exchange.getRequestBody();
-		try {
-		    ByteArrayOutputStream out = new ByteArrayOutputStream();
-		    byte buf[] = new byte[4096];
-		    for (int n = in.read(buf); n > 0; n = in.read(buf)) {
-		        out.write(buf, 0, n);
-		    }
-		    qry = new String(out.toByteArray(), encoding);
-		} finally {
-		    in.close();
-		}
-		
-		return out;*/
 	}
 	
 	/**
@@ -123,76 +96,8 @@ public class ServerRunner {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		try {
-			temp = new String(qry,"ISO-8859-1" );
-			temp = temp.substring(0, temp.length());
-			System.out.println("Raw Querry \t|"+temp + "|" );
-			System.out.println("Length " +temp.length());
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		if (Stringqry.contains("PublicKey")){
-			System.out.println("Recognised request for public key");
-			return key.getPublic().getEncoded();
-		}else{
-			try {
-				//Decoding to non base64
-				temp = new String(Base64.getMimeDecoder().decode(temp));
-				System.out.println("non base 64 version with length " + temp.length() + "\n" + temp);
-				Stringqry = new String (Encryption.decrypt(temp.getBytes("UTF-8")));
-				System.out.println("Decrypted: " + Stringqry);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		System.out.println(qry);
-		if (Stringqry.contains(":")){
-			//Invalid Command
-			return "Invalid command request".getBytes();
-		}else{
-			String result = "Invalid command request";
-			//Possible command found
-			String type = Stringqry.substring(0, Stringqry.indexOf(":"));
-			System.out.println("Found command:" + type);
-			switch (type){
-			case "POST":
-				System.out.println("recognised POST");
-				result = Base64.getEncoder().encodeToString(ServerRunner.key.getPublic().getEncoded());
-				 //result = getHandler(qry.substring(qry.indexOf(":")+1));
-				break;
-			default:
-				break;
-				
-			}
-			return result.getBytes();
-		}
+		System.out.println("Someone entered the following querry:/n" + Stringqry);
+		return qry;
 	}
 	
-	private static String getHandler(String command){
-		String returnString = command;
-		System.out.println(command);
-		System.out.println("Obtained:GET " + command);
-		switch (command){//Switch to see what needs to be gotten
-		case "dbDate":
-			returnString = Communication.getDate();
-			break;
-		}
-		return returnString;
-	}
-	
-	private static String decrypt(String message){
-		System.out.println("Raw querry = \t" + message);
-		System.out.println("End of Message");
-		try {
-			//message = Encryption.decrypt("",message);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println("decrypted querry = \t|" + message);
-		
-		return message;
-	}
 }
