@@ -84,7 +84,7 @@ public class ServerRunner {
 	}
 	
 	/**
-	 * This method will distinguish  between the different commands send in the htmlparameters
+	 * This method will distinguish  between the different commands send in the htmlparameters and excecute the correct request
 	 * @param qry the raw parameters
 	 */
 	private static byte[] querryhandler(byte[] qry){
@@ -96,7 +96,9 @@ public class ServerRunner {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		System.out.println("Someone entered the following querry:/n" + Stringqry);
+		String[] parts = Stringqry.split(":");
+		System.out.println("Querry contained " + parts.length + " parts");
+		System.out.println("Someone entered the following querry:\n" + parts[0]);
 		return qry;
 	}
 	
