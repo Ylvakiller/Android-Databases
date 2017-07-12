@@ -133,6 +133,7 @@ public class ServerRunner {
 							// error has been caught and send to console.
 							error = 400;
 						}
+						break;
 					default:
 						reply = "Incorrect request send";
 						error = 400;
