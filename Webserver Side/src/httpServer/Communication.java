@@ -1,10 +1,6 @@
 package httpServer;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Date;
 
 
@@ -36,7 +32,7 @@ public class Communication {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Closes connection to database
 	 */
@@ -46,9 +42,15 @@ public class Communication {
 		}catch (SQLException ex){
 			System.out.println(ex.toString());
 		}
-		
+
 	}
-	
+
+	/**
+	 *
+	 * @param username login name
+	 * @param password passwordt for said login.
+	 * @return string with requested date.
+	 */
 	protected static String getDate(String username, String password){
 		String date = null;
 		connect(username, password);
@@ -66,35 +68,50 @@ public class Communication {
 		close();
 		return date;
 	}
+//
+//	/**
+//	 *
+//	 * @param username login name
+//	 * @param password passwordt for said login.
+//	 * @return string with requested student.
+//	 */
+//	public static String searchStudent(String username, String password, String name){
+//
+//	    connect(username, password);
+//
+//	}
+
 	/*
 	 * sets the date to the value of temp
 	 * returns a true if the date was succesfully set
 	 */
-	public boolean SetDateStorred(String username, String password, Date date){
+	public static int setDateStorred(String username, String password, Date date){
 		connect(username, password);
 		int linesChanged = 0;
-		
-		String querry = "INSERT INTO date (`date`)VALUES('" + date + "')";
+
+		String querry = "INSERT INTO `Date` (`DatabaseDate`) VALUES (`" + date + "`)";
 		try{
 			Statement setDateStatement = con.createStatement();
 			linesChanged = setDateStatement.executeUpdate(querry);
-			
+
 			setDateStatement.close();
-			
+
 		} catch (SQLException e1) {
-			
+			e1.printStackTrace();
+			return 2;
 		}
 		close();
-		
+
 		if (linesChanged==0){
-			return false;
+			return 0;
 		}else{
-			return true;
+			return 1;
 		}
 	}
-	
+
+
 	protected static void querryholder(){
 		String Querry = "";
 	}
-	
+
 }
