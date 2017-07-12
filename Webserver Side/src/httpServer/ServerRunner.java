@@ -121,14 +121,8 @@ public class ServerRunner {
 				switch (parts[1]) {
 					case "DATE":
 						int response;
-						DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-						Date date = null;
-						try {
-							date = format.parse(parts[2]);
-						} catch (ParseException e) {
-							e.printStackTrace();
-						}
-						response = Communication.setDateStorred(parts[3], parts[4], date);
+						
+						response = Communication.setDateStorred(parts[3], parts[4], parts[2]);
 						if (response == 1) {
 							// lines are updated, atleast 1.
 							error = 201;

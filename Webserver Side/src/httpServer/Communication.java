@@ -85,7 +85,7 @@ public class Communication {
 	 * sets the date to the value of temp
 	 * returns a true if the date was succesfully set
 	 */
-	public static int setDateStorred(String username, String password, Date date){
+	public static int setDateStorred(String username, String password, String date){
 		connect(username, password);
 		int linesChanged = 0;
 
