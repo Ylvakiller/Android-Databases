@@ -34,9 +34,9 @@ public class ServerRunner {
 		String address = InetAddress.getLocalHost().getHostAddress();
 		//address = "asa.fawlty.nl";
 		address = "192.168.0.105";
-		System.out.println(sdf.format(cal.getTime()) + address);
+		System.out.println(sdf.format(cal.getTime()) + "|\t" + "address");
 		server = HttpServer.create(new InetSocketAddress(address,port), 0);
-		System.out.println(sdf.format(cal.getTime()) + server.getAddress().getAddress().getHostAddress());
+		System.out.println(sdf.format(cal.getTime()) +"|\t" + server.getAddress().getAddress().getHostAddress());
 		server.createContext("/data", new InfoHandler());
 		server.setExecutor(null); // creates a default executor
 		server.start();
@@ -46,11 +46,11 @@ public class ServerRunner {
 
 	static class InfoHandler implements HttpHandler {
 		public void handle(HttpExchange connection) throws IOException {
-			System.out.println(sdf.format(cal.getTime()) + "someone is connecting");
+			System.out.println(sdf.format(cal.getTime()) +"|\t" + "someone is connecting");
 			byte[] data = "Leave me alone!".getBytes();
 			
 			connections++;
-			System.out.println(sdf.format(cal.getTime()) + "This is connection number = " + connections);
+			System.out.println(sdf.format(cal.getTime()) +"|\t" + "This is connection number = " + connections);
 			try {
 				data = querryhandler(getParameters(connection));
 			} catch (Exception e) {
@@ -100,12 +100,12 @@ public class ServerRunner {
 			e1.printStackTrace();
 		}
 		String[] parts = stringQry.split(":");
-		System.out.println(sdf.format(cal.getTime()) + "Querry contained " + parts.length + " parts");
+		System.out.println(sdf.format(cal.getTime()) +"|\t" + "Querry contained " + parts.length + " parts");
 		if (parts.length!=3){
 			reply="There is an incorrect amount of seperators found, please do not use : in a message";
 			return reply.getBytes();
 		}
-		System.out.println(sdf.format(cal.getTime()) + "Someone entered the following querry:\n" + parts[0]);
+		System.out.println(sdf.format(cal.getTime()) +"|\t" + "Someone entered the following querry:\n" + parts[0]);
 		switch (parts[0]){
 		case "GET":
 			switch (parts[1]){
@@ -119,14 +119,14 @@ public class ServerRunner {
 		case "POST":
 		case "DATE":
 
-			System.out.println(sdf.format(cal.getTime()) + "Request was " + stringQry);
+			System.out.println(sdf.format(cal.getTime()) +"|\t" + "Request was " + stringQry);
 			break;
 			
 		default:
 			reply = "Incorrect request send";
 			break;
 		}
-		System.out.println(sdf.format(cal.getTime()) + reply);
+		System.out.println(sdf.format(cal.getTime()) +"|\t" + reply);
 		return reply.getBytes();
 	}
 	
