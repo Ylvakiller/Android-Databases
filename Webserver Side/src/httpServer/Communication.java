@@ -14,9 +14,9 @@ public class Communication {
 		// TODO Auto-generated constructor stub
 	}
 	private static final String hostname = "jdbc:mysql://localhost/";
-	private static final String dbName = "Android";
-	private static final String username = "Android";
-	private static final String password = "";
+	private static final String dbName = "AndroidDatabase";
+	//private static final String username = "Android";
+	//private static final String password = "";
 	public static Connection con;
 
 	/**
@@ -52,7 +52,7 @@ public class Communication {
 	protected static String getDate(String username, String password){
 		String date = null;
 		connect(username, password);
-		String Querry = "SELECT `dbDate` FROM `Time` ORDER BY `datemodified` DESC";
+		String Querry = "SELECT `DatabaseDate` FROM `Date` ORDER BY `DateChanged` LIMIT `1`";
 		try{
 			Statement getDateStatement = con.createStatement();
 			ResultSet dbDate = getDateStatement.executeQuery(Querry);
