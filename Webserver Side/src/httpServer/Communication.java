@@ -52,7 +52,7 @@ public class Communication {
 	protected static String getDate(String username, String password){
 		String date = null;
 		connect(username, password);
-		String Querry = "SELECT `DatabaseDate` FROM `Date` ORDER BY `DateChanged` LIMIT `1`";
+		String Querry = "SELECT `DatabaseDate` FROM `Date` ORDER BY `DateChanged` DESC";
 		try{
 			Statement getDateStatement = con.createStatement();
 			ResultSet dbDate = getDateStatement.executeQuery(Querry);
