@@ -23,6 +23,7 @@ public class ServerRunner {
 	public static HttpServer server;
 	private final static int port = 2026;
 	private static int connections = 0;
+	static int error = 200;
 	public ServerRunner() {
 		// TODO Auto-generated constructor stub
 	}
@@ -83,6 +84,7 @@ public class ServerRunner {
          }
          encKey = output.toByteArray();
          br.close();
+         
          return encKey;
 	}
 	
@@ -101,10 +103,7 @@ public class ServerRunner {
 		}
 		String[] parts = stringQry.split(":");
 		System.out.println(sdf.format(cal.getTime()) +"|\t" + "Querry contained " + parts.length + " parts");
-		if (parts.length!=3){
-			reply="There is an incorrect amount of seperators found, please do not use : in a message";
-			return reply.getBytes();
-		}
+		
 		System.out.println(sdf.format(cal.getTime()) +"|\t" + "Someone entered the following querry:\n" + parts[0]);
 		switch (parts[0]){
 		case "GET":
@@ -114,6 +113,7 @@ public class ServerRunner {
 			break;
 			default:
 				reply = "Incorrect request send";	
+				error=100;
 			}
 			break;
 		case "POST":
@@ -124,6 +124,7 @@ public class ServerRunner {
 			
 		default:
 			reply = "Incorrect request send";
+			error=100;
 			break;
 		}
 		System.out.println(sdf.format(cal.getTime()) +"|\t" + reply);
