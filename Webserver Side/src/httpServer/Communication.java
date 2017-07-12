@@ -89,7 +89,7 @@ public class Communication {
 		connect(username, password);
 		int linesChanged = 0;
 
-		String querry = "INSERT INTO `Date` (`DatabaseDate`) VALUES (`" + date + "`)";
+		String querry = "INSERT INTO Date (`DatabaseDate`) VALUES ('" + date + "')";
 		try{
 			Statement setDateStatement = con.createStatement();
 			linesChanged = setDateStatement.executeUpdate(querry);
