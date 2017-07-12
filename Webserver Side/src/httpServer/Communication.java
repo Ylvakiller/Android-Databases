@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 
 
 public class Communication {
@@ -22,7 +23,7 @@ public class Communication {
 	 * Opens a connection to the database
 	 * @return false if connection not established
 	 */
-	private static boolean connect(){
+	private static boolean connect(String username, String password){
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 			con = DriverManager.getConnection(hostname + dbName, username, password);
@@ -48,9 +49,9 @@ public class Communication {
 		
 	}
 	
-	protected static String getDate(){
+	protected static String getDate(String username, String password){
 		String date = null;
-		connect();
+		connect(username, password);
 		String Querry = "SELECT `dbDate` FROM `Time` ORDER BY `datemodified` DESC";
 		try{
 			Statement getDateStatement = con.createStatement();
@@ -65,7 +66,32 @@ public class Communication {
 		close();
 		return date;
 	}
-	
+	/*
+	 * sets the date to the value of temp
+	 * returns a true if the date was succesfully set
+	 */
+	public boolean SetDateStorred(String username, String password, Date date){
+		connect(username, password);
+		int linesChanged = 0;
+		
+		String querry = "INSERT INTO date (`date`)VALUES('" + date + "')";
+		try{
+			Statement setDateStatement = con.createStatement();
+			linesChanged = setDateStatement.executeUpdate(querry);
+			
+			setDateStatement.close();
+			
+		} catch (SQLException e1) {
+			
+		}
+		close();
+		
+		if (linesChanged==0){
+			return false;
+		}else{
+			return true;
+		}
+	}
 	
 	protected static void querryholder(){
 		String Querry = "";

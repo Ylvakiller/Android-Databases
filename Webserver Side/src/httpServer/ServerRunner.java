@@ -13,10 +13,13 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.security.KeyPair;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Calendar;
 
 public class ServerRunner {
-
+	static Calendar cal = Calendar.getInstance();
+    static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	public static HttpServer server;
 	private final static int port = 2026;
 	private static int connections = 0;
@@ -31,23 +34,23 @@ public class ServerRunner {
 		String address = InetAddress.getLocalHost().getHostAddress();
 		//address = "asa.fawlty.nl";
 		address = "192.168.0.105";
-		System.out.println(address);
+		System.out.println(sdf.format(cal.getTime()) + address);
 		server = HttpServer.create(new InetSocketAddress(address,port), 0);
-		System.out.println(server.getAddress().getAddress().getHostAddress());
+		System.out.println(sdf.format(cal.getTime()) + server.getAddress().getAddress().getHostAddress());
 		server.createContext("/data", new InfoHandler());
 		server.setExecutor(null); // creates a default executor
 		server.start();
-		System.out.println("Server Started");
+		System.out.println(sdf.format(cal.getTime()) + "Server Started");
 		
 	}
 
 	static class InfoHandler implements HttpHandler {
 		public void handle(HttpExchange connection) throws IOException {
-			System.out.println("someone is connecting");
+			System.out.println(sdf.format(cal.getTime()) + "someone is connecting");
 			byte[] data = "Leave me alone!".getBytes();
 			
 			connections++;
-			System.out.println("This is connection number = " + connections);
+			System.out.println(sdf.format(cal.getTime()) + "This is connection number = " + connections);
 			try {
 				data = querryhandler(getParameters(connection));
 			} catch (Exception e) {
@@ -88,18 +91,43 @@ public class ServerRunner {
 	 * @param qry the raw parameters
 	 */
 	private static byte[] querryhandler(byte[] qry){
-		String Stringqry = "";
-		String temp = "";
+		String stringQry = "";
+		String reply = "Something went wrong";
 		try {
-			Stringqry = new String(qry, "ISO-8859-1");
+			stringQry = new String(qry, "ISO-8859-1");
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		String[] parts = Stringqry.split(":");
-		System.out.println("Querry contained " + parts.length + " parts");
-		System.out.println("Someone entered the following querry:\n" + parts[0]);
-		return qry;
+		String[] parts = stringQry.split(":");
+		System.out.println(sdf.format(cal.getTime()) + "Querry contained " + parts.length + " parts");
+		if (parts.length!=3){
+			reply="There is an incorrect amount of seperators found, please do not use : in a message";
+			return reply.getBytes();
+		}
+		System.out.println(sdf.format(cal.getTime()) + "Someone entered the following querry:\n" + parts[0]);
+		switch (parts[0]){
+		case "GET":
+			switch (parts[1]){
+			case "DATE":
+			reply = Communication.getDate(parts[2],parts[3]);
+			break;
+			default:
+				reply = "Incorrect request send";	
+			}
+			break;
+		case "POST":
+		case "DATE":
+
+			System.out.println(sdf.format(cal.getTime()) + "Request was " + stringQry);
+			break;
+			
+		default:
+			reply = "Incorrect request send";
+			break;
+		}
+		System.out.println(sdf.format(cal.getTime()) + reply);
+		return reply.getBytes();
 	}
 	
 }
