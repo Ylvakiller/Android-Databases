@@ -90,6 +90,7 @@ public class Communication {
 		int linesChanged = 0;
 
 		String querry = "INSERT INTO Date (`DatabaseDate`) VALUES ('" + date + "')";
+		System.out.println(querry);
 		try{
 			Statement setDateStatement = con.createStatement();
 			linesChanged = setDateStatement.executeUpdate(querry);
