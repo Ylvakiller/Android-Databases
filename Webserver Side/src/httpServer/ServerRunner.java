@@ -40,7 +40,7 @@ public class ServerRunner {
 		server.createContext("/data", new InfoHandler());
 		server.setExecutor(null); // creates a default executor
 		server.start();
-		System.out.println(sdf.format(cal.getTime()) + "Server Started");
+		System.out.println(sdf.format(cal.getTime()) +"|\t" + "Server Started");
 		
 	}
 
