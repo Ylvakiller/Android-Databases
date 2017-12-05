@@ -1,7 +1,6 @@
 package httpServer;
 
 import java.sql.*;
-import java.util.Date;
 
 
 public class Communication {
@@ -22,7 +21,8 @@ public class Communication {
 	private static boolean connect(String username, String password){
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			con = DriverManager.getConnection(hostname + dbName, username, password);
+			//"jdbc:mysql://hostname/dbname?user=user&password=password"
+			con = DriverManager.getConnection(hostname + dbName +"?user="+ username + "&password=" + password);
 		}catch(SQLException ex){
 			System.out.println(ex.toString());
 			return false;
@@ -31,6 +31,7 @@ public class Communication {
 			return false;
 		}
 		return true;
+
 	}
 
 	/**
@@ -54,7 +55,7 @@ public class Communication {
 	protected static String getDate(String username, String password){
 		String date = null;
 		connect(username, password);
-		String Querry = "SELECT `DataBaseDate` FROM `date` ORDER BY `date`.`DataBaseDate` DESC";
+		String Querry = "SELECT `DataBaseDate` FROM `date` ORDER BY `date`.`DateChanged` DESC";
 		try{
 			Statement getDateStatement = con.createStatement();
 			ResultSet dbDate = getDateStatement.executeQuery(Querry);
@@ -62,10 +63,10 @@ public class Communication {
 				date= "No date found";
 			}else {
 				date = dbDate.getString(1);
-				System.out.println("Date found to be " + date);
+				//System.out.println("Date found to be " + date);
 			}
 			dbDate.close();
-			
+
 		}catch (SQLException ex){
 			ex.printStackTrace();
 			ConsoleCommands.close();
@@ -73,18 +74,18 @@ public class Communication {
 		close();
 		return date;
 	}
-//
-//	/**
-//	 *
-//	 * @param username login name
-//	 * @param password passwordt for said login.
-//	 * @return string with requested student.
-//	 */
-//	public static String searchStudent(String username, String password, String name){
-//
-//	    connect(username, password);
-//
-//	}
+	//
+	//	/**
+	//	 *
+	//	 * @param username login name
+	//	 * @param password passwordt for said login.
+	//	 * @return string with requested student.
+	//	 */
+	//	public static String searchStudent(String username, String password, String name){
+	//
+	//	    connect(username, password);
+	//
+	//	}
 
 	/*
 	 * sets the date to the value of temp
@@ -99,7 +100,6 @@ public class Communication {
 		try{
 			Statement setDateStatement = con.createStatement();
 			linesChanged = setDateStatement.executeUpdate(querry);
-
 			setDateStatement.close();
 
 		} catch (SQLException e1) {
@@ -114,9 +114,84 @@ public class Communication {
 			return 1;
 		}
 	}
+	/**
+	 * Makes a new book in the BookInfo table and adds the specified amounts of books to the bookid table
+	 * @param author The author of the book
+	 * @param title The title of the book
+	 * @param amount The amount of books to initially add
+	 */
+	public static void setNewBook(String username, String password,String author, String title, int amount) {
+		connect(username, password);
+		int linesChanged = 0;
+		String infoQuerry = "INSERT INTO `bookinfo` (`Author`, `Title`) VALUES (?, ? )";
+		String retrieveBookIdea =  "SELECT `idBook` FROM `bookinfo` WHERE author = ? AND title = ?";
+		PreparedStatement addInfo = null;
+		PreparedStatement getId = null;
+		PreparedStatement addBooks = null;
+		try {
+			con.setAutoCommit(false);
+			addInfo = con.prepareStatement(infoQuerry);
+			addInfo.setString(1, author);
+			addInfo.setString(2, title);
+			linesChanged = addInfo.executeUpdate();
+			if(linesChanged!=1) {
+				throw new SQLException("Something is very wrong");
+			}
+			getId = con.prepareStatement(retrieveBookIdea);
+			getId.setString(1, author);
+			getId.setString(2, title);
+			ResultSet id = getId.executeQuery();
+			if (id.next()) {
+				System.out.println("Id found to be" + id.getInt(1));
+			}else {
+				System.out.println("Book not found");
+			}
+			String addBooksQuerry = "INSERT INTO `bookid` (`BookID`) VALUES('"+id.getInt(1)+"')";
+			
+			for(int i = 0; i< amount; i++) {
+				addBooks = con.prepareStatement(addBooksQuerry);
+				if (addBooks.executeUpdate()!=1) {
+					throw new SQLException("Something is very wrong");
+				}
+				
+			}
+
+con.commit();
+		} catch (SQLException e) {
+			System.err.println("Something went wrong, rolling back");
+			try {
+				con.rollback();
+			} catch (SQLException e1) {
+				System.err.println("Something is very very very wrong");
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+
+
+		} finally {
+			if (addInfo!=null) {
+				try {
+					addInfo.close();
+				} catch (SQLException e) {
+					System.err.println("More of the wrong things are happening");
+					e.printStackTrace();
+				}
+			}
+			try {
+				con.setAutoCommit(true);
+			} catch (SQLException e) {
+				System.err.println("Okay if this goes wrong you really should exit whilst you still can");
+				e.printStackTrace();
+			}
+		}
+
+
+
+	}
 
 
 	protected static void querryholder(){
+		@SuppressWarnings("unused")
 		String Querry = "";
 	}
 
