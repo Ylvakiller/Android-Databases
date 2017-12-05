@@ -18,7 +18,7 @@ public class ServerRunner {
 	static Calendar cal = Calendar.getInstance();
 	static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	public static HttpServer server;
-	private final static int port = 2026;
+	private final static int port = 30260;
 	private static int connections = 0;
 	static int error = 200;
 	public ServerRunner() {
@@ -32,8 +32,8 @@ public class ServerRunner {
 		console.start();
 		String address = InetAddress.getLocalHost().getHostAddress();
 		//address = "asa.fawlty.nl";
-		address = "192.168.0.105";
-		System.out.println(sdf.format(cal.getTime()) + "|\t" + "address");
+		//address = "145.37.37.255";
+		System.out.println(sdf.format(cal.getTime()) + "|\t" + "address given");
 		server = HttpServer.create(new InetSocketAddress(address,port), 0);
 		System.out.println(sdf.format(cal.getTime()) +"|\t" + server.getAddress().getAddress().getHostAddress());
 		server.createContext("/data", new InfoHandler());

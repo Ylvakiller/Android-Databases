@@ -50,8 +50,15 @@ public class ConsoleCommands extends Thread {
 		String commands[] = new String[10];
 		commands[0] = "stop";
 		commands[1] = "Get Date";
+		commands[2] = "Set Date";
 		while (true){
 			String input = keyboard.nextLine();
+			switch (input){
+			case "get date":
+				System.out.println("Getting Date");
+				System.out.println(Communication.getDate("AndroidServer", ""));
+				break;
+			}
 			if (input.equalsIgnoreCase(commands[0])){//Termination command
 				ServerRunner.server.stop(0);
 				keyboard.close();
