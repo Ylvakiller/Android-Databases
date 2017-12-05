@@ -54,16 +54,21 @@ public class Communication {
 	protected static String getDate(String username, String password){
 		String date = null;
 		connect(username, password);
-		String Querry = "SELECT `DatabaseDate` FROM `Date` ORDER BY `DateChanged` DESC";
+		String Querry = "SELECT * FROM date";
 		try{
 			Statement getDateStatement = con.createStatement();
 			ResultSet dbDate = getDateStatement.executeQuery(Querry);
-			dbDate.next();
-			date = dbDate.getString(1);
+			if(!dbDate.next()){
+				date= "No date found";
+			}else {
+				date = dbDate.getString(1);
+				System.out.println("Date found to be " + date);
+			}
 			dbDate.close();
-			System.out.println("Date found to be " + date);
+			
 		}catch (SQLException ex){
 			ex.printStackTrace();
+			ConsoleCommands.close();
 		}
 		close();
 		return date;

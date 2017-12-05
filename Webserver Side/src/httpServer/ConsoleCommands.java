@@ -43,21 +43,33 @@ public class ConsoleCommands extends Thread {
 		super(arg0, arg1, arg2, arg3);
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	public void run(){
 		System.out.println("Console command interperenter starting");
 		Scanner keyboard = new Scanner(System.in);
 		String commands[] = new String[10];
 		commands[0] = "stop";
+		commands[1] = "Get Date";
 		while (true){
 			String input = keyboard.nextLine();
 			if (input.equalsIgnoreCase(commands[0])){//Termination command
 				ServerRunner.server.stop(0);
 				keyboard.close();
 				System.exit(0);
+			}else if (input.equalsIgnoreCase(commands[1])){
+				System.out.println("Getting Date");
+				System.out.println(Communication.getDate("AndroidServer", ""));
+
+			}else {
+				System.err.println("Command not found.\nCommand given: \t" +input);
 			}
-			System.err.println("Command not found.\nCommand given: \t" +input);
 		}
+	}
+	
+	public static void close() {
+		System.out.println("Server is shutting down");
+		ServerRunner.server.stop(0);
+		System.exit(0);
 	}
 
 }
