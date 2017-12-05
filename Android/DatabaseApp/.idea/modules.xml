@@ -3,7 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/DatabaseApp.iml" filepath="$PROJECT_DIR$/DatabaseApp.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://F:\Eclipse2017Workspace\Android-Databases\Android\DatabaseApp\DatabaseApp.iml" filepath="F:\Eclipse2017Workspace\Android-Databases\Android\DatabaseApp\DatabaseApp.iml" />
+      <module fileurl="file://F:\Eclipse2017Workspace\Android-Databases\Android\DatabaseApp\app\app.iml" filepath="F:\Eclipse2017Workspace\Android-Databases\Android\DatabaseApp\app\app.iml" />
     </modules>
   </component>
 </project>
