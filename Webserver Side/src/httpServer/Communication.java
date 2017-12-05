@@ -116,6 +116,7 @@ public class Communication {
 	}
 	/**
 	 * Makes a new book in the BookInfo table and adds the specified amounts of books to the bookid table
+	 * If at any points it encounters an error it will spit a generic error message along with the stack trace and roll back what it was doing
 	 * @param author The author of the book
 	 * @param title The title of the book
 	 * @param amount The amount of books to initially add
