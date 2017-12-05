@@ -54,7 +54,7 @@ public class Communication {
 	protected static String getDate(String username, String password){
 		String date = null;
 		connect(username, password);
-		String Querry = "SELECT * FROM date";
+		String Querry = "SELECT `DataBaseDate` FROM `date` ORDER BY `date`.`DataBaseDate` DESC";
 		try{
 			Statement getDateStatement = con.createStatement();
 			ResultSet dbDate = getDateStatement.executeQuery(Querry);
