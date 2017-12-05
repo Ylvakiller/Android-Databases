@@ -147,16 +147,16 @@ public class Communication {
 				System.out.println("Book not found");
 			}
 			String addBooksQuerry = "INSERT INTO `bookid` (`BookID`) VALUES('"+id.getInt(1)+"')";
-			
+
 			for(int i = 0; i< amount; i++) {
 				addBooks = con.prepareStatement(addBooksQuerry);
 				if (addBooks.executeUpdate()!=1) {
 					throw new SQLException("Something is very wrong");
 				}
-				
+
 			}
 
-con.commit();
+			con.commit();
 		} catch (SQLException e) {
 			System.err.println("Something went wrong, rolling back");
 			try {
