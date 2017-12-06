@@ -65,11 +65,6 @@ public class ConsoleCommands extends Thread {
 		}
 		System.out.println("Console command interperenter starting");
 		Scanner keyboard = new Scanner(System.in);
-		String commands[] = new String[10];
-		commands[0] = "stop";
-		commands[1] = "get date";
-		commands[2] = "set date";
-		commands[3] = "";
 		while (true){
 			String input = keyboard.nextLine();
 			input=input.toLowerCase();
@@ -92,6 +87,7 @@ public class ConsoleCommands extends Thread {
 					System.out.println("Date parsed as \t" + dateObject.toString());
 					System.out.println(Communication.setDateStorred(User, pwd, format.format(dateObject)));
 				} catch (ParseException e) {
+					System.err.println("Incorrect date given");
 					e.printStackTrace();
 				}
 			case "add book":
@@ -102,11 +98,7 @@ public class ConsoleCommands extends Thread {
 				System.out.println("And now the amount to add");
 				int amount = keyboard.nextInt();
 				Communication.setNewBook(actualUser, actualPwd, author, title, amount);
-				
 			break;
-			default:
-				System.err.println("Command not found.\nCommand given: \t" +input);
-				break;
 			}
 		}
 	}

@@ -95,16 +95,27 @@ public class Communication {
 		connect(username, password);
 		int linesChanged = 0;
 
-		String querry = "INSERT INTO Date (`DatabaseDate`) VALUES ('" + date + "')";
+		String querry = "INSERT INTO Date (`DatabaseDate`) VALUES (?)";
+		PreparedStatement dateInsert = null;
+		
 		System.out.println(querry);
 		try{
-			Statement setDateStatement = con.createStatement();
-			linesChanged = setDateStatement.executeUpdate(querry);
-			setDateStatement.close();
+			dateInsert = con.prepareStatement(querry);
+			dateInsert.setString(1, date);
+			linesChanged = dateInsert.executeUpdate();
 
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 			return 2;
+		}finally {
+			if (dateInsert!=null) {
+				try {
+					dateInsert.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		close();
 
@@ -138,16 +149,8 @@ public class Communication {
 			if(linesChanged!=1) {
 				throw new SQLException("Something is very wrong");
 			}
-			getId = con.prepareStatement(retrieveBookIdea);
-			getId.setString(1, author);
-			getId.setString(2, title);
-			ResultSet id = getId.executeQuery();
-			if (id.next()) {
-				System.out.println("Id found to be" + id.getInt(1));
-			}else {
-				System.out.println("Book not found");
-			}
-			String addBooksQuerry = "INSERT INTO `bookid` (`BookID`) VALUES('"+id.getInt(1)+"')";
+			int bookID = Communication.getBookID(username, password, author, title);
+			String addBooksQuerry = "INSERT INTO `bookid` (`BookID`) VALUES('"+bookID+"')";
 
 			for(int i = 0; i< amount; i++) {
 				addBooks = con.prepareStatement(addBooksQuerry);
@@ -188,6 +191,37 @@ public class Communication {
 
 
 
+	}
+	
+	/**
+	 * Retrieves the book ID of a specific book type, not of the individual versions of the book
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param author Author to search for
+	 * @param title Title to search for
+	 * @return The Id found
+	 */
+	public static int getBookID(String username, String password, String author, String title) {
+		connect(username, password);
+		String retrieveBookIdea =  "SELECT `idBook` FROM `bookinfo` WHERE author = ? AND title = ?";
+		PreparedStatement getId = null;
+		int idNumber = 0;
+		try {
+			getId = con.prepareStatement(retrieveBookIdea);
+			getId.setString(1, author);
+			getId.setString(2, title);
+			ResultSet id = getId.executeQuery();
+			if (id.next()) {
+				idNumber = id.getInt(1);
+				System.out.println("Id found to be " + idNumber);
+			}else {
+				System.out.println("Book not found");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return idNumber;
 	}
 
 
