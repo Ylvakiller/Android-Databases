@@ -75,7 +75,7 @@ public class ConsoleCommands extends Thread {
 				System.exit(0);
 				break;
 			case "get date":
-				System.out.println(Communication.getDate(User, pwd));
+				System.out.println(Communication.getDate(actualUser, actualPwd));
 				break;
 			case "set date":
 				System.out.println("Please input the date you want.");
@@ -85,7 +85,9 @@ public class ConsoleCommands extends Thread {
 				try {
 					dateObject = format.parse(date);
 					System.out.println("Date parsed as \t" + dateObject.toString());
-					System.out.println(Communication.setDateStorred(User, pwd, format.format(dateObject)));
+					if (Communication.setDateStorred(actualUser, actualPwd, format.format(dateObject))) {
+						
+					}
 				} catch (ParseException e) {
 					System.err.println("Incorrect date given");
 					e.printStackTrace();

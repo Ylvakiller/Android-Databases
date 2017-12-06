@@ -120,10 +120,11 @@ public class Communication {
 		close();
 
 		if (linesChanged==0){
-			return 0;
-		}else{
 			return 1;
+		}else{
+			return 0;
 		}
+		
 	}
 	/**
 	 * Makes a new book in the BookInfo table and adds the specified amounts of books to the bookid table
@@ -188,9 +189,7 @@ public class Communication {
 				e.printStackTrace();
 			}
 		}
-
-
-
+		close();
 	}
 	
 	/**
@@ -203,7 +202,7 @@ public class Communication {
 	 */
 	public static int getBookID(String username, String password, String author, String title) {
 		connect(username, password);
-		String retrieveBookIdea =  "SELECT `idBook` FROM `bookinfo` WHERE author = ? AND title = ?";
+		String retrieveBookIdea =  "SELECT `BookNumberId` FROM `bookinfo` WHERE author = ? AND title = ?";
 		PreparedStatement getId = null;
 		int idNumber = 0;
 		try {
@@ -213,7 +212,7 @@ public class Communication {
 			ResultSet id = getId.executeQuery();
 			if (id.next()) {
 				idNumber = id.getInt(1);
-				System.out.println("Id found to be " + idNumber);
+				//System.out.println("Id found to be " + idNumber);
 			}else {
 				System.out.println("Book not found");
 			}
@@ -221,7 +220,15 @@ public class Communication {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		close();
 		return idNumber;
+	}
+	
+	public static void getAllBooks(String username, String password, int id) {
+		connect(username, password);
+		String retrieveIndividualBookIdea =  "SELECT `idBook` FROM `bookinfo` WHERE author = ? AND title = ?";
+		PreparedStatement getIds = null;
+		close();
 	}
 
 
