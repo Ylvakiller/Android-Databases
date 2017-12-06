@@ -85,7 +85,7 @@ public class ConsoleCommands extends Thread {
 				try {
 					dateObject = format.parse(date);
 					System.out.println("Date parsed as \t" + dateObject.toString());
-					if (Communication.setDateStorred(actualUser, actualPwd, format.format(dateObject))) {
+					if (0==Communication.setDateStorred(actualUser, actualPwd, format.format(dateObject))) {
 						
 					}
 				} catch (ParseException e) {
