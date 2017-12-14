@@ -33,7 +33,7 @@ public class ServerRunner {
 		console.start();
 		String address = InetAddress.getLocalHost().getHostAddress();
 		//address = "asa.fawlty.nl";
-		//address = "145.37.37.255";
+		//String address = "192.168.0.104";
 		System.out.println(sdf.format(cal.getTime()) + "|\t" + "address given");
 		server = HttpServer.create(new InetSocketAddress(address,port), 0);
 		System.out.println(sdf.format(cal.getTime()) +"|\t" + server.getAddress().getAddress().getHostAddress());

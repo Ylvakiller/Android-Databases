@@ -2,6 +2,7 @@ package httpServer;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -63,6 +64,7 @@ public class ConsoleCommands extends Thread {
 			actualUser = User;
 			actualPwd = pwd;
 		}
+		
 		System.out.println("Console command interperenter starting");
 		Scanner keyboard = new Scanner(System.in);
 		while (true){
@@ -100,6 +102,13 @@ public class ConsoleCommands extends Thread {
 				System.out.println("And now the amount to add");
 				int amount = keyboard.nextInt();
 				Communication.setNewBook(actualUser, actualPwd, author, title, amount);
+				break;
+			case "print all books":
+				System.out.println("I will now get all the books and print them");
+				ArrayList<Book> bookList = Communication.getAllBooks(actualUser, actualPwd);
+				for (int i = 0; i < bookList.size(); i++) {
+					bookList.get(i).printBook();
+				}
 			break;
 			}
 		}

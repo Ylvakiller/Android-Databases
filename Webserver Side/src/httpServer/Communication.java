@@ -1,6 +1,7 @@
 package httpServer;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 
 public class Communication {
@@ -8,7 +9,7 @@ public class Communication {
 	public Communication() {
 		// TODO Auto-generated constructor stub
 	}
-	private static final String hostname = "jdbc:mysql://localhost/";
+	private static final String hostname = "jdbc:mysql://192.168.0.104:3306/";
 	private static final String dbName = "AndroidDatabase";
 	//private static final String username = "Android";
 	//private static final String password = "";
@@ -49,7 +50,7 @@ public class Communication {
 	/**
 	 *
 	 * @param username login name
-	 * @param password passwordt for said login.
+	 * @param password password for said login.
 	 * @return string with requested date.
 	 */
 	protected static String getDate(String username, String password){
@@ -74,18 +75,6 @@ public class Communication {
 		close();
 		return date;
 	}
-	//
-	//	/**
-	//	 *
-	//	 * @param username login name
-	//	 * @param password passwordt for said login.
-	//	 * @return string with requested student.
-	//	 */
-	//	public static String searchStudent(String username, String password, String name){
-	//
-	//	    connect(username, password);
-	//
-	//	}
 
 	/*
 	 * sets the date to the value of temp
@@ -97,7 +86,7 @@ public class Communication {
 
 		String querry = "INSERT INTO Date (`DatabaseDate`) VALUES (?)";
 		PreparedStatement dateInsert = null;
-		
+
 		System.out.println(querry);
 		try{
 			dateInsert = con.prepareStatement(querry);
@@ -124,7 +113,7 @@ public class Communication {
 		}else{
 			return 0;
 		}
-		
+
 	}
 	/**
 	 * Makes a new book in the BookInfo table and adds the specified amounts of books to the bookid table
@@ -191,7 +180,7 @@ public class Communication {
 		}
 		close();
 	}
-	
+
 	/**
 	 * Retrieves the book ID of a specific book type, not of the individual versions of the book
 	 * @param username Username to use to connect
@@ -216,21 +205,94 @@ public class Communication {
 			}else {
 				System.out.println("Book not found");
 			}
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally{
+			if (getId!=null){
+				try {
+					getId.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		close();
 		return idNumber;
 	}
+
 	
-	public static void getAllBooks(String username, String password, int id) {
+	public static ArrayList<Book> getAllBooks(String username, String password) {
 		connect(username, password);
+		String retrieveAllBooks = "SELECT * FROM `bookinfo` ORDER BY `idBook` ASC";
 		String retrieveIndividualBookIdea =  "SELECT `idBook` FROM `bookinfo` WHERE author = ? AND title = ?";
 		PreparedStatement getIds = null;
+		ArrayList<Book> bookList = new ArrayList<Book>();
+		try {
+			Statement getBooksStatement = con.createStatement();
+			ResultSet allBooks = getBooksStatement.executeQuery(retrieveAllBooks);
+			while (allBooks.next()){
+				int id = allBooks.getInt(1); //Retrieve the next BookID on the list
+				ArrayList<Integer> bookNumberIDs = Communication.getAllBookNumbersByID(username, password, id);
+				bookList.add(new Book(id, allBooks.getString(2), allBooks.getString(3), bookNumberIDs.size()));
+				
+			}
+			allBooks.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			if (getIds!=null){
+				try {
+					getIds.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 		close();
+		
+		return bookList;
 	}
 
+	/**
+	 * Obtains an ArrayList with all the BookNumberIDs corresponding to the given BookID
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param BookID The BookID to search for
+	 * @return an ArrayList with all the BookNumberIDs that where found
+	 */
+	public static ArrayList<Integer> getAllBookNumbersByID(String username, String password, int BookID){
+		connect(username, password);
+		String retrieveBooksOfID = "SELECT `BookNumberID` FROM `bookid` WHERE `BookID`=?";
+		PreparedStatement bookId = null;
+		ArrayList<Integer> BookNumberIDs = new ArrayList<Integer>();
+		try {
+			bookId = con.prepareStatement(retrieveBooksOfID);
+			bookId.setString(1, String.valueOf(BookID));
+			ResultSet results = bookId.executeQuery();
+			while(results.next()){
+				BookNumberIDs.add(results.getInt(1));
+			}
+			results.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			if (bookId!=null){
+				try {
+					bookId.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		close();
+		return BookNumberIDs;
+		
+		
+	}
 
 	protected static void querryholder(){
 		@SuppressWarnings("unused")
