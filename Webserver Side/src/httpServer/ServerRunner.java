@@ -30,7 +30,6 @@ public class ServerRunner {
 
 		System.out.println(version);
 		ConsoleCommands console = new ConsoleCommands();
-		console.start();
 		String address = InetAddress.getLocalHost().getHostAddress();
 		//address = "asa.fawlty.nl";
 		//String address = "192.168.0.104";
@@ -41,6 +40,8 @@ public class ServerRunner {
 		server.setExecutor(null); // creates a default executor
 		server.start();
 		System.out.println(sdf.format(cal.getTime()) +"|\t" + "Server Started");
+
+		console.start();
 
 	}
 

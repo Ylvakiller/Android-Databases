@@ -1,16 +1,22 @@
 package httpServer;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 
 public class Communication {
+	public static boolean verbose = false;
 
 	public Communication() {
 		// TODO Auto-generated constructor stub
 	}
-	private static final String hostname = "jdbc:mysql://192.168.0.104:3306/";
-	private static final String dbName = "AndroidDatabase";
+	private static final String hostname = "jdbc:mysql://192.168.178.10:3306/";
+	private static final String dbName = "androiddatabase";
 	//private static final String username = "Android";
 	//private static final String password = "";
 	public static Connection con;
@@ -123,6 +129,10 @@ public class Communication {
 	 * @param amount The amount of books to initially add
 	 */
 	public static void setNewBook(String username, String password,String author, String title, int amount) {
+		if(author.length()>30||title.length()>75){
+			System.err.println("To long an input given when adding books");
+			throw new IllegalArgumentException("To long a string given");
+		}
 		connect(username, password);
 		int linesChanged = 0;
 		String infoQuerry = "INSERT INTO `bookinfo` (`Author`, `Title`) VALUES (?, ? )";
@@ -139,7 +149,7 @@ public class Communication {
 			if(linesChanged!=1) {
 				throw new SQLException("Something is very wrong");
 			}
-			int bookID = Communication.getBookID(username, password, author, title);
+			int bookID = Communication.getBookID(username, password, author, title, false);
 			String addBooksQuerry = "INSERT INTO `bookid` (`BookID`) VALUES('"+bookID+"')";
 
 			for(int i = 0; i< amount; i++) {
@@ -147,7 +157,6 @@ public class Communication {
 				if (addBooks.executeUpdate()!=1) {
 					throw new SQLException("Something is very wrong");
 				}
-
 			}
 
 			con.commit();
@@ -189,9 +198,9 @@ public class Communication {
 	 * @param title Title to search for
 	 * @return The Id found
 	 */
-	public static int getBookID(String username, String password, String author, String title) {
-		connect(username, password);
-		String retrieveBookIdea =  "SELECT `BookNumberId` FROM `bookinfo` WHERE author = ? AND title = ?";
+	public static int getBookID(String username, String password, String author, String title, boolean reconnect) {
+		if(reconnect){connect(username, password);}
+		String retrieveBookIdea =  "SELECT `idBook` FROM `bookinfo` WHERE author = ? AND title = ?";
 		PreparedStatement getId = null;
 		int idNumber = 0;
 		try {
@@ -218,7 +227,7 @@ public class Communication {
 				}
 			}
 		}
-		close();
+		if(reconnect){close();}
 		return idNumber;
 	}
 
@@ -293,10 +302,4 @@ public class Communication {
 		
 		
 	}
-
-	protected static void querryholder(){
-		@SuppressWarnings("unused")
-		String Querry = "";
-	}
-
 }
