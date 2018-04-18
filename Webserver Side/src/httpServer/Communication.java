@@ -79,7 +79,7 @@ public class Communication {
 
 		}catch (SQLException ex){
 			ex.printStackTrace();
-			ConsoleCommands.close();
+			close();
 		}
 		close();
 		return date;
@@ -338,5 +338,67 @@ public class Communication {
 		
 		return false;
 		
+	}
+	
+	/**
+	 * Will insert a new teacher into the database, presumes that the info is correct, will return false if failed
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param name Name of the teacher to add
+	 * @param id 3 digit string
+	 * @param department
+	 * @return
+	 */
+	public static boolean addTeacher(String username, String password, String name, String id, String department){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "INSERT INTO `teachers` (`TeacherID`,`Name`,`department`) VALUES (?,?,?)";
+		int linesChanged = 0;
+		PreparedStatement teacherInsert = null;
+		if(verbose){System.out.println(querry);}
+		try {
+			teacherInsert = con.prepareStatement(querry);
+			teacherInsert.setString(1, id);
+			teacherInsert.setString(2, name);
+			teacherInsert.setString(3, department);
+			linesChanged = teacherInsert.executeUpdate();
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			close();
+			return false;
+		}
+		close();
+		if(linesChanged==1){
+			return true;
+		}
+		
+		return false;
+		
+	}
+	
+	public static int getSetting(String username, String password, String SettingName){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "SELECT `Value` FROM `settings` WHERE `SettingName`=?";
+		PreparedStatement settingStmnt = null;
+		int value = 0;
+		try {
+			settingStmnt = con.prepareStatement(querry);
+			settingStmnt.setString(1, SettingName);
+			ResultSet results = settingStmnt.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("Incorrect setting");
+				}
+			}else{
+				value = results.getInt(1);
+			}
+			results.close();
+			
+		} catch (SQLException e) {
+			close();
+			e.printStackTrace();
+		}
+		close();
+		return value;
 	}
 }

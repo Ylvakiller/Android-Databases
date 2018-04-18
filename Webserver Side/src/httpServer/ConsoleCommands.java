@@ -12,7 +12,9 @@ public class ConsoleCommands extends Thread {
 	private static String User = "AndroidServer";
 	private static String pwd = "Hello";
 	private static boolean debugMode = true;
-
+	private static Scanner keyboard;
+	private static String actualUser;
+	private static String actualPwd;
 
 	public ConsoleCommands() {
 		// TODO Auto-generated constructor stub
@@ -55,8 +57,7 @@ public class ConsoleCommands extends Thread {
 	}
 
 	public void run(){
-		String actualUser;
-		String actualPwd;
+		
 		if(debugMode) {
 			actualUser=User;
 			actualPwd = pwd;
@@ -68,7 +69,7 @@ public class ConsoleCommands extends Thread {
 
 		System.out.println("Console command interperenter starting");
 		ConsoleCommands.printCommands();
-		Scanner keyboard = new Scanner(System.in);
+		keyboard = new Scanner(System.in);
 		while (true){
 			String input = keyboard.nextLine();
 			input=input.toLowerCase();
@@ -177,6 +178,50 @@ public class ConsoleCommands extends Thread {
 					System.out.println("Failed to add student");
 				}
 				break;
+				
+			case "add teacher":
+				String teacherName = null;
+				boolean successful = false;
+				while(!successful){
+					System.out.println("Enter the teacher name:");
+					teacherName = keyboard.nextLine();
+					if(teacherName.length()>45){
+						System.out.println("Your name is to long, please enter again");
+					}else{successful = true;}
+				}
+				String departmentName = null;
+				successful = false;
+				
+				while(!successful){
+					System.out.println("Now enter the department name");
+					departmentName = keyboard.nextLine();
+					if(departmentName.length()>45){
+						System.out.println("This department name is to long, please try again and keep it in under 45 characters");
+					}else{
+						successful = true;
+					}
+				}
+				String teacherID = null;
+				successful = false;
+				while(!successful){
+					System.out.println("Enter the teacher id:");
+					teacherID = keyboard.nextLine();
+					if(teacherID.length()!=3){
+						System.out.println("Incorrect teacher id, please enter again");
+					}else{
+						successful = true;
+					}
+				}
+				
+				if (Communication.addTeacher(actualUser, actualPwd, teacherName, teacherID, departmentName)){
+					System.out.println("Teacher added");
+				}else{
+					System.out.println("Failed to add teacher");
+				}
+				break;
+			case "settings":
+				ConsoleCommands.getSetting(actualUser, actualPwd);
+				break;
 			default:
 				System.out.println("Please try again");
 				break;
@@ -206,8 +251,61 @@ public class ConsoleCommands extends Thread {
 		System.out.println("set date\t\tAllows you to change the date that the database is operating on");
 		System.out.println("add book\t\tAdd books, will ask for the required information and amount");
 		System.out.println("print books\t\tPrints all the books in the database");
+		System.out.println("add student\t\tAdd a student to the database");
+		System.out.println("add teacher\t\tAdd a teacher to the database");
 
 
+		
+		
+	}
+	
+	/**
+	 * Will allow the user to retrieve and change a setting in the settings table on the database.
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 */
+	public static void getSetting(String username, String password){
+		System.out.println("Enter the number of the setting you wish to change");
+		System.out.println("1\tStudent book amount limit");
+		System.out.println("2\tTeacher book amount limit");
+		System.out.println("3\tStudent borrow day limit");
+		System.out.println("4\tTeacher borrow day limit");
+
+		System.out.println("5\tAll of the above");
+		int setting = keyboard.nextInt();
+		int v1,v2,v3,v4;
+		switch (setting){
+		case 1:
+			v1 = Communication.getSetting(username, password, "StudentBookBorrowLimit");
+			System.out.println("The current maximum amount of books a student can borrow is "+ v1);
+			break;
+		case 2:
+			v2 = Communication.getSetting(username, password, "TeacherBookBorrowLimit");
+			System.out.println("The current maximum amount of books a teacher can borrow is "+ v2);
+			break;
+		case 3:
+			v3 = Communication.getSetting(username, password, "StudentBookDayLimit");
+			System.out.println("A student can borrow a book for up to "+ v3 + " days");
+			break;
+		case 4:
+			v4 = Communication.getSetting(username, password, "TeacherBookDayLimit");
+			System.out.println("A teacher can borrow a book for up to "+ v4 + " days");
+			break;
+		case 5:
+			v1 = Communication.getSetting(username, password, "StudentBookBorrowLimit");
+			System.out.println("The current maximum amount of books a student can borrow is "+ v1);
+			v2 = Communication.getSetting(username, password, "TeacherBookBorrowLimit");
+			System.out.println("The current maximum amount of books a teacher can borrow is "+ v2);
+			v3 = Communication.getSetting(username, password, "StudentBookDayLimit");
+			System.out.println("A student can borrow a book for up to "+ v3 + " days");
+			v4 = Communication.getSetting(username, password, "TeacherBookDayLimit");
+			System.out.println("A teacher can borrow a book for up to "+ v4 + " days");
+			break;
+		default:
+			System.out.println("Incorrect setting, returning to main screen");
+			break;
+		}
+		keyboard.nextLine();
 	}
 
 }
