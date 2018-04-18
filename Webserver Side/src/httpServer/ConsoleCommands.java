@@ -123,7 +123,7 @@ public class ConsoleCommands extends Thread {
 							System.out.format("\n"+builder.toString()+"\n");
 						}
 						bookList.get(i).printBook();
-						
+
 					}
 					formatter.close();
 				}
@@ -136,7 +136,52 @@ public class ConsoleCommands extends Thread {
 				System.out.println("Turning verbose off");
 				Communication.verbose = false;
 				break;
+			case "add student":
+				String studentName = null;
+				boolean success = false;
+				while(!success){
+					System.out.println("Enter the student name:");
+					studentName = keyboard.nextLine();
+					if(studentName.length()>45){
+						System.out.println("Your name is to long, please enter again");
+					}else{success = true;}
+				}
+				String telephoneNumber = null;
+				success = false;
+				
+				while(!success){
+					System.out.println("Now enter a telephone number");
+					telephoneNumber = keyboard.nextLine();//Due to the mess that is telephone numbers, I am not checking if this is correct
+					//For more info, watch https://www.youtube.com/watch?v=LsxRaFNropw
+					if(telephoneNumber.length()>50){
+						System.out.println("Yeaahhh, this is not a valid telephone number");
+					}else{
+						success = true;
+					}
+				}
+				int id = 0;
+				success = false;
+				while(!success){
+					System.out.println("Enter the student id:");
+					id = Integer.valueOf(keyboard.nextLine());
+					if(id>9999){
+						System.out.println("Your id is to long, please enter again");
+					}else if(id<0){
+						System.out.println("Did you just enter a negative id? You fool, try again!");
+					}else{success = true;}
+				}
+				
+				if (Communication.addStudent(actualUser, actualPwd, studentName, id, telephoneNumber)){
+					System.out.println("Student added");
+				}else{
+					System.out.println("Failed to add student");
+				}
+				break;
+			default:
+				System.out.println("Please try again");
+				break;
 			}
+			System.out.println("Please enter your next command");
 		}
 	}
 

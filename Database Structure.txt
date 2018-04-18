@@ -1,0 +1,52 @@
+Table structures:
+
+students
+	idStudent (Auto increment, decided by database, Unique)
+	Name (45 char varchar, defaults to null)
+	TelephoneNumber(12 digit varchar, defaults to null)
+	Active(boolean 1 if active 0 if inactive, if inactive needs admin control to lend books again, defaults to 1)
+AFTER INSERT a line in balancestudents is made with the idStudent
+
+balancestudents
+	Students_idStudent (foreign key linked to students table, Unique)
+	Balance (float balance for students, has to be positive however database doesn't check for that)
+
+teachers
+	idTeacher (Auto increment, decided by database, Unique)
+	Name (45 char varchar, defaults to null)
+	DepartmentName(45 digit varchar, defaults to null)
+	Active(boolean 1 if active 0 if inactive, if inactive needs admin control to lend books again, defaults to 1)
+AFTER INSERT a line in balanceteachers is made with the idTeacher
+
+balanceteachers
+	Teachers_idTeacher (foreign key linked to teachers table, Unique)
+	Balance (float balance for teachers, represents a negative number)
+	
+date
+	DateChanged (typestamp, the current timestamp of the database, is used to sort on which database date to confirm to)
+	DataBaseDate (date, the date that the database can use in order to calculate fines and hand ins)
+
+settings (Holds all settings that are applicable to the database and not to any internal client)
+	SettingsName(varchar 45, this can be used to identify a setting)
+	Value (integer)
+
+bookinfo (The main location of information about types of books)
+	idBook (integer, auto increment and decided by the database, used to identify books)
+	Author (30 digit varchar, holds the author of a book)
+	Title (75 digit varchar, holds the title of a book)
+
+bookid (hold all the individual copies of books)
+	BookNumberID(int, auto increment, this is a specific book)
+	BookID(int, this is the id of a book in bookinfo, used to identify what kind of book it is)
+	Borrowed (boolean, default 0, set to 1 if borrowed)
+borrow
+	BorrowID(int, Unique, auto increments, used to identify a specific borrowing)
+	Date (date, the date at which the borrowing occurred, as determined by the DataBaseDate)
+	BookID_BookNumberID(int, foreign key linked to a bookid in bookinfo)
+	
+transaction
+	idTransaction (int, used as a key in this table to make sure everything is unique)
+	idUser (int, links to the person that this transaction applies to)
+	Date (date, the date used by the database program on which the transaction applies)
+	Change (int, the amount of change that is part of this transaction, negative if its a fine)
+	

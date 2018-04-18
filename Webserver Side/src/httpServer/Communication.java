@@ -31,8 +31,11 @@ public class Communication {
 			//"jdbc:mysql://hostname/dbname?user=user&password=password"
 			con = DriverManager.getConnection(hostname + dbName +"?user="+ username + "&password=" + password);
 		}catch(SQLException ex){
+			System.out.println("Failed to connect to database, exciting program");
+			
 			System.out.println(ex.toString());
-			return false;
+			
+			System.exit(1);
 		} catch (ClassNotFoundException e) {
 			System.out.println(e.toString());
 			return false;
@@ -93,7 +96,7 @@ public class Communication {
 		String querry = "INSERT INTO Date (`DatabaseDate`) VALUES (?)";
 		PreparedStatement dateInsert = null;
 
-		System.out.println(querry);
+		if(verbose){System.out.println(querry);}
 		try{
 			dateInsert = con.prepareStatement(querry);
 			dateInsert.setString(1, date);
@@ -101,6 +104,7 @@ public class Communication {
 
 		} catch (SQLException e1) {
 			e1.printStackTrace();
+			close();
 			return 2;
 		}finally {
 			if (dateInsert!=null) {
@@ -299,7 +303,40 @@ public class Communication {
 		}
 		close();
 		return BookNumberIDs;
+	}
+	/**
+	 * Will insert a new student into the database, presumes that the info is correct, but will give a false if it failed
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param name Name of the new student
+	 * @param id 4 digit id of the new student
+	 * @param telephone telephone of the new student
+	 * @return true if succesfully added the student
+	 */
+	public static boolean addStudent(String username, String password, String name, int id, String telephone){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "INSERT INTO `students` (`StudentID`,`Name`,`TelephoneNumber`) VALUES (?,?,?)";
+		int linesChanged = 0;
+		PreparedStatement studentInsert = null;
+		if(verbose){System.out.println(querry);}
+		try {
+			studentInsert = con.prepareStatement(querry);
+			studentInsert.setString(1, String.valueOf(id));
+			studentInsert.setString(2, name);
+			studentInsert.setString(3, telephone);
+			linesChanged = studentInsert.executeUpdate();
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			close();
+			return false;
+		}
+		close();
+		if(linesChanged==1){
+			return true;
+		}
 		
+		return false;
 		
 	}
 }
