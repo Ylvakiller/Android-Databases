@@ -556,7 +556,7 @@ public class Communication {
 			transactionStmnt.setInt(1, idStudent);
 			transactionStmnt.setString(2, date);
 			transactionStmnt.setFloat(3, amountToAdd);
-			transactionStmnt.setString(4, "Student");
+			transactionStmnt.setString(4, "1");
 			linesChanged = transactionStmnt.executeUpdate();
 			if(linesChanged == 1){
 				if(verbose){
@@ -581,4 +581,75 @@ public class Communication {
 		return Communication.getStudentBalance(username, password, idStudent);
 	}
 
+	/**
+	 * Will get the id, activity and name from all the students
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @return an Arraylist with strings in it where the first 4 characters are the id, the 5th is a boolean showing activity and then the name
+	 */
+	public static ArrayList<String> getAllStudents(String username, String password){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "SELECT `StudentID`,`Name`,`Active` FROM `students` ORDER BY `Active` DESC, `StudentID` ASC";
+		PreparedStatement settingStmnt = null;
+		int value = 0;
+		ArrayList<String> names = new ArrayList<String>();
+		try {
+			settingStmnt = con.prepareStatement(querry);
+			ResultSet results = settingStmnt.executeQuery();
+			while(results.next()){
+				//We know the student id is a 4 digit int
+				String line = String.valueOf(results.getInt(1));
+				while(line.length()<4){
+					line = "0" + line;
+				}//This adds padding zeroes to an id to make sure the length is 4
+				//Now we can just paste the name after it and add it to the array list
+				line = line + results.getInt(3);
+				line = line + results.getString(2);
+				names.add(line);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		return names;
+	}
+	/**
+	 * Will get the id, activity and name from all the students
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @return an Arraylist with strings in it where the first 4 characters are the id, the 5th is a boolean showing activity and then the name
+	 */
+	public static ArrayList<String> getAllTeachers(String username, String password){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "SELECT `TeacherID`,`Name`,`Active` FROM `teachers` ORDER BY `Active` DESC, `TeacherID` ASC";
+		PreparedStatement settingStmnt = null;
+		int value = 0;
+		ArrayList<String> names = new ArrayList<String>();
+		try {
+			settingStmnt = con.prepareStatement(querry);
+			ResultSet results = settingStmnt.executeQuery();
+			while(results.next()){
+				//We know the teacher id is a 3 char string
+				String line = results.getString(1);
+				while(line.length()<3){
+					line = "0" + line;
+				}//This adds padding zeroes to an id to make sure the length is 3
+				//Now we can just paste the name after it and add it to the array list
+				line = line + results.getInt(3);
+				line = line + results.getString(2);
+				names.add(line);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		return names;
+	}
+	
 }

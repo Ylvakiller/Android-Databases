@@ -264,6 +264,33 @@ public class ConsoleCommands extends Thread {
 				}
 			}
 				break;
+			case "print students":
+			{
+				System.out.println("Printing all student info");
+				ArrayList<String> list =  Communication.getAllStudents(actualUser, actualPwd);
+				System.out.println("|Active\t\t|Student ID\t|Name");
+				if(!list.isEmpty()){
+					for(int i =0; i<list.size();i++){
+						String line = list.get(i);
+						System.out.println("|"+line.charAt(4)+"\t\t|" + line.substring(0, 4) + "\t\t|" + line.substring(5));
+					}
+				}
+			}
+			break;
+			case "print teachers":
+			{
+				System.out.println("Printing all teacher info");
+				ArrayList<String> list =  Communication.getAllTeachers(actualUser, actualPwd);
+				System.out.println("|Active\t\t|Teacher ID\t|Name");
+				if(!list.isEmpty()){
+					for(int i =0; i<list.size();i++){
+						String line = list.get(i);
+						System.out.println("|"+line.charAt(3)+"\t\t|" + line.substring(0, 3) + "\t\t|" + line.substring(4));
+					}
+				}
+			}
+			
+			break;
 			default:
 				System.out.println("Please try again");
 				break;
@@ -293,10 +320,14 @@ public class ConsoleCommands extends Thread {
 		System.out.println("get date\t\tGets the current date the database is operating on");
 		System.out.println("set date\t\tAllows you to change the date that the database is operating on");
 		System.out.println("add book\t\tAdd books, will ask for the required information and amount");
-		System.out.println("print books\t\tPrints all the books in the database");
 		System.out.println("add student\t\tAdd a student to the database");
 		System.out.println("add teacher\t\tAdd a teacher to the database");
 		System.out.println("deposit student\t\tDeposit money for a student");
+		
+
+		System.out.println("\nprint books\t\tPrints all the books in the database");
+		System.out.println("print students\t\tPrints all the students in the database");
+		System.out.println("print teachers\t\tPrints all the teachers in the database");
 
 
 

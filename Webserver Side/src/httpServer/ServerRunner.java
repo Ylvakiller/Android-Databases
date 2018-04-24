@@ -70,10 +70,10 @@ public class ServerRunner {
 	}
 
 	/**
-	 * Gets the HTTP paramaters from the given HttpExchange (connection)
-	 * @param exchange
-	 * @return
-	 * @throws Exception
+	 * Gets the HTTP parameters from the given HttpExchange (connection)
+	 * @param exchange The exchange to get the parameters from
+	 * @return the parameters written in a byte array
+	 * @throws Exception exception when the parameter is not opened correctly
 	 */
 	private static byte[] getParameters(HttpExchange exchange) throws Exception{
 		InputStream br = exchange.getRequestBody();
@@ -92,6 +92,7 @@ public class ServerRunner {
 	/**
 	 * This method will distinguish  between the different commands send in the htmlparameters and excecute the correct request
 	 * @param qry the raw parameters
+	 * @return byte array with the return string
 	 */
 	private static byte[] querryhandler(byte[] qry){
 		String stringQry = "";
