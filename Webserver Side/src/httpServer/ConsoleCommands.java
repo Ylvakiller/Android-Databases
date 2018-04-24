@@ -244,6 +244,7 @@ public class ConsoleCommands extends Thread {
 		System.out.println("/? \t\t\tBrings up this screen");
 
 		System.out.println("stop \t\t\tStops the webserver completely/n");
+		System.out.println("settings\t\tView and change settings in the database");
 		System.out.println("verbose on\t\tTurns verbose messages in the console on");
 		System.out.println("verbose off\t\tTurns verbose messages in the console off\n");
 
@@ -253,6 +254,7 @@ public class ConsoleCommands extends Thread {
 		System.out.println("print books\t\tPrints all the books in the database");
 		System.out.println("add student\t\tAdd a student to the database");
 		System.out.println("add teacher\t\tAdd a teacher to the database");
+		
 
 
 		
@@ -271,25 +273,66 @@ public class ConsoleCommands extends Thread {
 		System.out.println("3\tStudent borrow day limit");
 		System.out.println("4\tTeacher borrow day limit");
 
-		System.out.println("5\tAll of the above");
-		int setting = keyboard.nextInt();
+		System.out.println("5\tOnly display all settings");
+		int setting  = Integer.valueOf(keyboard.nextLine());
+		
 		int v1,v2,v3,v4;
 		switch (setting){
 		case 1:
 			v1 = Communication.getSetting(username, password, "StudentBookBorrowLimit");
 			System.out.println("The current maximum amount of books a student can borrow is "+ v1);
+			System.out.println("Please enter the new amount");
+			{
+				
+				int temp = Integer.valueOf(keyboard.nextLine());
+				if(Communication.setSetting(username, password, "StudentBookBorrowLimit", temp)){
+					System.out.println("Updated setting to new value");
+				}else{
+					System.out.println("Failed to update setting to new value");
+				}
+			}
 			break;
 		case 2:
 			v2 = Communication.getSetting(username, password, "TeacherBookBorrowLimit");
 			System.out.println("The current maximum amount of books a teacher can borrow is "+ v2);
+			System.out.println("Please enter the new amount");
+			{
+				
+				int temp = Integer.valueOf(keyboard.nextLine());
+				if(Communication.setSetting(username, password, "TeacherBookBorrowLimit", temp)){
+					System.out.println("Updated setting to new value");
+				}else{
+					System.out.println("Failed to update setting to new value");
+				}
+			}
 			break;
 		case 3:
 			v3 = Communication.getSetting(username, password, "StudentBookDayLimit");
 			System.out.println("A student can borrow a book for up to "+ v3 + " days");
+			System.out.println("Please enter the new amount");
+			{
+				
+				int temp = Integer.valueOf(keyboard.nextLine());
+				if(Communication.setSetting(username, password, "StudentBookDayLimit", temp)){
+					System.out.println("Updated setting to new value");
+				}else{
+					System.out.println("Failed to update setting to new value");
+				}
+			}
 			break;
 		case 4:
 			v4 = Communication.getSetting(username, password, "TeacherBookDayLimit");
 			System.out.println("A teacher can borrow a book for up to "+ v4 + " days");
+			System.out.println("Please enter the new amount");
+			{
+				
+				int temp = Integer.valueOf(keyboard.nextLine());
+				if(Communication.setSetting(username, password, "TeacherBookDayLimit", temp)){
+					System.out.println("Updated setting to new value");
+				}else{
+					System.out.println("Failed to update setting to new value");
+				}
+			}
 			break;
 		case 5:
 			v1 = Communication.getSetting(username, password, "StudentBookBorrowLimit");

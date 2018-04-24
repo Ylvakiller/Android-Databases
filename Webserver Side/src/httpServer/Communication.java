@@ -32,9 +32,9 @@ public class Communication {
 			con = DriverManager.getConnection(hostname + dbName +"?user="+ username + "&password=" + password);
 		}catch(SQLException ex){
 			System.out.println("Failed to connect to database, exciting program");
-			
+
 			System.out.println(ex.toString());
-			
+
 			System.exit(1);
 		} catch (ClassNotFoundException e) {
 			System.out.println(e.toString());
@@ -79,9 +79,9 @@ public class Communication {
 
 		}catch (SQLException ex){
 			ex.printStackTrace();
+		}finally{
 			close();
 		}
-		close();
 		return date;
 	}
 
@@ -104,7 +104,6 @@ public class Communication {
 
 		} catch (SQLException e1) {
 			e1.printStackTrace();
-			close();
 			return 2;
 		}finally {
 			if (dateInsert!=null) {
@@ -115,8 +114,9 @@ public class Communication {
 					e.printStackTrace();
 				}
 			}
+
+			close();
 		}
-		close();
 
 		if (linesChanged==0){
 			return 1;
@@ -235,7 +235,7 @@ public class Communication {
 		return idNumber;
 	}
 
-	
+
 	public static ArrayList<Book> getAllBooks(String username, String password) {
 		connect(username, password);
 		String retrieveAllBooks = "SELECT * FROM `bookinfo` ORDER BY `idBook` ASC";
@@ -249,7 +249,7 @@ public class Communication {
 				int id = allBooks.getInt(1); //Retrieve the next BookID on the list
 				ArrayList<Integer> bookNumberIDs = Communication.getAllBookNumbersByID(username, password, id);
 				bookList.add(new Book(id, allBooks.getString(2), allBooks.getString(3), bookNumberIDs.size()));
-				
+
 			}
 			allBooks.close();
 		} catch (SQLException e) {
@@ -265,7 +265,7 @@ public class Communication {
 			}
 		}
 		close();
-		
+
 		return bookList;
 	}
 
@@ -326,20 +326,20 @@ public class Communication {
 			studentInsert.setString(3, telephone);
 			linesChanged = studentInsert.executeUpdate();
 		} catch (SQLException e) {
-			
+
 			e.printStackTrace();
-			close();
 			return false;
+		}finally{
+			close();
 		}
-		close();
 		if(linesChanged==1){
 			return true;
 		}
-		
+
 		return false;
-		
+
 	}
-	
+
 	/**
 	 * Will insert a new teacher into the database, presumes that the info is correct, will return false if failed
 	 * @param username Username to use to connect
@@ -362,20 +362,27 @@ public class Communication {
 			teacherInsert.setString(3, department);
 			linesChanged = teacherInsert.executeUpdate();
 		} catch (SQLException e) {
-			
+
 			e.printStackTrace();
-			close();
 			return false;
+		}finally{
+			close();
 		}
-		close();
 		if(linesChanged==1){
 			return true;
 		}
-		
+
 		return false;
-		
+
 	}
-	
+
+	/**
+	 * Retrieves a single row in the settings table
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param SettingName The setting to retrieve
+	 * @return The integer value of the setting
+	 */
 	public static int getSetting(String username, String password, String SettingName){
 		connect(username,password);//always connect first to see if the program needs to crash :)
 		String querry = "SELECT `Value` FROM `settings` WHERE `SettingName`=?";
@@ -393,12 +400,45 @@ public class Communication {
 				value = results.getInt(1);
 			}
 			results.close();
-			
+
 		} catch (SQLException e) {
 			close();
 			e.printStackTrace();
 		}
 		close();
 		return value;
+	}
+
+	/**
+	 * Updates a single row in the settings table
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param SettingName The setting to update
+	 * @param newSetting The new value of the corresponding setting
+	 * @return true if succesfully updated setting
+	 */
+	public static boolean setSetting(String username, String password, String SettingName, int newSetting){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "UPDATE `settings` SET `Value` = ? WHERE `SettingName`=?";
+		PreparedStatement settingStmnt = null;
+		boolean succeeded = false;
+		try {
+			settingStmnt = con.prepareStatement(querry);
+			settingStmnt.setString(1, String.valueOf(newSetting));
+			settingStmnt.setString(2, SettingName);
+			int linesChanged = settingStmnt.executeUpdate();
+			if (linesChanged==1){
+				succeeded = true;
+			}
+
+
+		} catch (SQLException e) {
+			close();
+			e.printStackTrace();
+			succeeded = false;
+		}finally{
+			close();
+		}
+		return succeeded;
 	}
 }
