@@ -254,7 +254,7 @@ public class Communication {
 			while (allBooks.next()){
 				int id = allBooks.getInt(1); //Retrieve the next BookID on the list
 				ArrayList<Integer> bookNumberIDs = Communication.getAllBookNumbersByID(username, password, id);
-				bookList.add(new Book(id, allBooks.getString(2), allBooks.getString(3), bookNumberIDs.size()));
+				bookList.add(new Book(id, allBooks.getString(2), allBooks.getString(3)));
 
 			}
 			allBooks.close();
@@ -531,7 +531,7 @@ public class Communication {
 		float balance = Communication.getStudentBalance(username, password, idStudent);
 		connect(username,password);//always connect first to see if the program needs to crash :)
 
-		
+
 		String updateQuerry ="UPDATE `balancestudents` SET `balance` = ? WHERE `Students_idStudent`=?";
 		String transactionQuerry ="INSERT INTO `transaction` (`idUser`,`Date`,`Change`, `idType`) VALUES (?,?,?,?)";
 		PreparedStatement updateBalanceStmnt = null;
@@ -650,6 +650,65 @@ public class Communication {
 			close();
 		}
 		return names;
+	}
+
+	public static ArrayList<SpecificBook> getBooksBorrowed(String username, String password, String id, boolean isStudent){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "SELECT `BookID_BookNumberID` FROM `borrow` WHERE `Returned`=0 AND `id`=? AND `isStudent`=?"; //Will get the ids of books currently being borrowed by the student
+		PreparedStatement statement = null;
+		int value = 0;
+		ArrayList<SpecificBook> books = new ArrayList<SpecificBook>();
+		try {
+			statement = con.prepareStatement(querry);
+			statement.setString(1, id);
+			if(isStudent){
+				statement.setString(1, "1");
+			}else{
+				statement.setString(1, "0");
+			}
+			ResultSet results = statement.executeQuery();
+			while(results.next()){
+				int bookNumberID = results.getInt(1);
+				books.add(Communication.getBookInfoByBookID(username, password, bookNumberID, false));//get info and put it in the list
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		return books;
+	}
+	
+	public static SpecificBook getBookInfoByBookID(String username, String password, int bookID, boolean reconnect){
+		if(reconnect){connect(username, password);}
+		String querry = "SELECT `idBook`,`Author`, `Title` FROM bookinfo A JOIN bookid B ON A.idBook = B.BookID WHERE B.BookNumberID=? ";
+		PreparedStatement statement = null;
+		SpecificBook book = null;
+		int value = 0;
+		try {
+			statement = con.prepareStatement(querry);
+			statement.setInt(1, bookID);
+			ResultSet results = statement.executeQuery();
+			if(results.next()){
+				book = new SpecificBook(results.getInt(1),results.getString(2),results.getString(3),bookID);
+				System.out.println("Found book");
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			if(reconnect){close();}
+		}
+		return book;
+	}
+	
+	public static void borrowBook(String username, String password, int bookid, String id, boolean isStudent){
+		String date = Communication.getDate(username, password);
+		connect(username, password);
+		close();
 	}
 	
 }

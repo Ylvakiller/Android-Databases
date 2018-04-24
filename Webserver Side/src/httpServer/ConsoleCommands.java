@@ -122,7 +122,7 @@ public class ConsoleCommands extends Thread {
 					System.out.println("The books that are stored are");
 					StringBuilder builder = new StringBuilder();
 					Formatter formatter = new Formatter(builder);
-					formatter.format("|%-4s|%-6s|%-30s|%-75s", "ID","Amount","Author","Title");
+					formatter.format("|%-4s|%-30s|%-75s", "ID","Author","Title");
 					for (int i = 0; i < bookList.size(); i++) {
 						if (i%10==0){//Print the header every 10 lines
 							System.out.format("\n"+builder.toString()+"\n");
@@ -263,7 +263,7 @@ public class ConsoleCommands extends Thread {
 					}
 				}
 			}
-				break;
+			break;
 			case "print students":
 			{
 				System.out.println("Printing all student info");
@@ -289,7 +289,86 @@ public class ConsoleCommands extends Thread {
 					}
 				}
 			}
-			
+
+			break;
+			case "student borrow":
+			{
+				int internalID = 0;
+				for(int i = 0; i<4;i++){//Smaller then 4 to make sure I can stop the program here already
+					if(i==3){
+						System.err.println("You have entered the wrong details 3 times, closing program");
+						close();
+					}
+					System.out.println("Please input the name of the student that wants to borrow a book");
+					String name = keyboard.nextLine();
+					System.out.println("Please input the id of the students that wants to borrow a book");
+					int studentID = Integer.valueOf(keyboard.nextLine());
+					internalID = Communication.getStudent(actualUser, actualPwd, name, studentID);
+					if(internalID!=0){//Student found
+						break;
+					}else{
+						System.out.println("Incorrect details, student not found");
+						System.out.println((2-i) +" attempts remaining");
+					}
+				}
+				//Now check the amount of books that the student has borrowed
+				ArrayList<SpecificBook> booklist = Communication.getBooksBorrowed(actualUser, actualPwd, String.valueOf(internalID), true);
+				if(booklist.size()<Communication.getSetting(actualUser, actualPwd, "StudentBookBorrowLimit")){
+					if(Communication.verbose){System.out.println("Student can borrow more books");}
+					//Student is allowed to borrow more books based on the limit
+					if(Communication.getStudentBalance(actualUser, actualPwd, internalID)<10){
+						//Student has enough balance, time to find out what the student wants to borrow
+						String temp;
+						while(true){
+							System.out.println("Do you want to select your book by name or id?");//id when for example scanning
+							temp = keyboard.nextLine();
+							temp = temp.toLowerCase();
+							switch(temp){
+							case "id":
+								System.out.println("Please enter the id");
+								int bookid = Integer.valueOf(keyboard.nextLine());
+								SpecificBook book = Communication.getBookInfoByBookID(actualUser, actualPwd,bookid , true);
+								if (book == null){
+									System.out.println("Couldn't find book");
+								}else{
+									
+								}
+								break;
+							case "name":
+								break;
+							default:
+								System.out.println("Incorrect decision");
+								break;
+							}
+						}
+					}else{
+						System.out.println("The balance of this student is to low");
+					}
+				}else{
+					System.out.println("Student cannot borrow more books");
+				}
+
+			}
+			break;
+			case "currently borrowed student":
+			{
+				System.out.println("Please input the name of the student that wants to borrow a book");
+				String name = keyboard.nextLine();
+				System.out.println("Please input the id of the students that wants to borrow a book");
+				int studentID = Integer.valueOf(keyboard.nextLine());
+				int internalID = Communication.getStudent(actualUser, actualPwd, name, studentID);
+				if(internalID!=0){//Student found
+					ArrayList<SpecificBook> booklist = Communication.getBooksBorrowed(actualUser, actualPwd, String.valueOf(internalID), true);
+					if(booklist.size()==0){
+						System.out.println("The student has not borrowing anything");
+					}else{
+						System.out.println("Student is borrowing the following books:");
+						for(int i = 0; i< booklist.size();i++){
+							booklist.get(i).printbook();
+						}
+					}
+				}
+			}
 			break;
 			default:
 				System.out.println("Please try again");
@@ -299,6 +378,9 @@ public class ConsoleCommands extends Thread {
 		}
 	}
 
+	/**
+	 * Shuts down server
+	 */
 	public static void close() {
 		System.out.println("Server is shutting down");
 		ServerRunner.server.stop(0);
@@ -323,7 +405,7 @@ public class ConsoleCommands extends Thread {
 		System.out.println("add student\t\tAdd a student to the database");
 		System.out.println("add teacher\t\tAdd a teacher to the database");
 		System.out.println("deposit student\t\tDeposit money for a student");
-		
+
 
 		System.out.println("\nprint books\t\tPrints all the books in the database");
 		System.out.println("print students\t\tPrints all the students in the database");
