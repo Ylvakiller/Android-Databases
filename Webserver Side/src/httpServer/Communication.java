@@ -23,6 +23,8 @@ public class Communication {
 
 	/**
 	 * Opens a connection to the database
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
 	 * @return false if connection not established
 	 */
 	private static boolean connect(String username, String password){
@@ -128,6 +130,9 @@ public class Communication {
 	/**
 	 * Makes a new book in the BookInfo table and adds the specified amounts of books to the bookid table
 	 * If at any points it encounters an error it will spit a generic error message along with the stack trace and roll back what it was doing
+	 * 
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
 	 * @param author The author of the book
 	 * @param title The title of the book
 	 * @param amount The amount of books to initially add
@@ -200,6 +205,7 @@ public class Communication {
 	 * @param password Password to use to connect
 	 * @param author Author to search for
 	 * @param title Title to search for
+	 * @param reconnect true if a new connection needs to be opened
 	 * @return The Id found
 	 */
 	public static int getBookID(String username, String password, String author, String title, boolean reconnect) {
@@ -346,8 +352,8 @@ public class Communication {
 	 * @param password Password to use to connect
 	 * @param name Name of the teacher to add
 	 * @param id 3 digit string
-	 * @param department
-	 * @return
+	 * @param department The name of the department
+	 * @return true if teacher succesfully added
 	 */
 	public static boolean addTeacher(String username, String password, String name, String id, String department){
 		connect(username,password);//always connect first to see if the program needs to crash :)
@@ -402,10 +408,10 @@ public class Communication {
 			results.close();
 
 		} catch (SQLException e) {
-			close();
 			e.printStackTrace();
+		}finally{
+			close();
 		}
-		close();
 		return value;
 	}
 
@@ -433,7 +439,6 @@ public class Communication {
 
 
 		} catch (SQLException e) {
-			close();
 			e.printStackTrace();
 			succeeded = false;
 		}finally{
@@ -441,4 +446,139 @@ public class Communication {
 		}
 		return succeeded;
 	}
+
+	/**
+	 * Gets the internal id used by the database for a given student
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param name The name as how the student is stored in the database
+	 * @param id The student id as is stored in the database
+	 * @return the internal database id for a student, 0 if not found
+	 */
+	public static int getStudent(String username, String password, String name, int id){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "SELECT `idStudent` FROM `students` WHERE `StudentID`=? AND `Name`=?";
+		PreparedStatement studentStmnt = null;
+		int value = 0;
+		try {
+			studentStmnt = con.prepareStatement(querry);
+			studentStmnt.setString(1, String.valueOf(id));
+			studentStmnt.setString(2, name);
+			ResultSet results = studentStmnt.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("Student not found");
+				}
+			}else{
+				value = results.getInt(1);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		return value;
+	}
+
+	/**
+	 * Retrieves the balance of a student
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param idStudent The internal id as found by {@link #getStudent(String, String, String, int)}}
+	 * @return The balance of a student
+	 */
+	public static float getStudentBalance(String username, String password,int idStudent){
+
+		connect(username,password);//always connect first to see if the program needs to crash :)
+
+		float balance = 0;
+		String querry = "SELECT `Balance` FROM `balancestudents` WHERE `Students_idStudent`=?";
+		PreparedStatement studentStmnt = null;
+		try {
+			studentStmnt = con.prepareStatement(querry);
+			studentStmnt.setString(1, String.valueOf(idStudent));
+			ResultSet results = studentStmnt.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("balance not found");
+				}
+			}else{
+				balance = results.getFloat(1);
+			}
+			results.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		return balance;
+	}
+
+	/**
+	 * Will update the balance of a student based on its current balance as found by {@link #getStudentBalance(String, String, int)}} and the given amount to add
+	 * Uses the {@link #getDate(String, String)} to make sure it updates the transaction table correctly
+	 * 
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param idStudent The internal id as found by {@link #getStudent(String, String, String, int)}}
+	 * @param amountToAdd The amount to add to a students balance
+	 * @return the new balance that is stored, is taken from the {@link #getStudentBalance(String, String, int)} method
+	 */
+	public static float updatebalance(String username, String password, int idStudent, float amountToAdd){
+		String date = Communication.getDate(username, password);//First get the date, before opening a new connection
+		float balance = Communication.getStudentBalance(username, password, idStudent);
+		connect(username,password);//always connect first to see if the program needs to crash :)
+
+		
+		String updateQuerry ="UPDATE `balancestudents` SET `balance` = ? WHERE `Students_idStudent`=?";
+		String transactionQuerry ="INSERT INTO `transaction` (`idUser`,`Date`,`Change`, `idType`) VALUES (?,?,?,?)";
+		PreparedStatement updateBalanceStmnt = null;
+		PreparedStatement transactionStmnt = null;
+		try {
+			con.setAutoCommit(false);
+			updateBalanceStmnt = con.prepareStatement(updateQuerry);
+			if(verbose){
+				System.out.println("The new balance should be " + (amountToAdd+balance));
+			}
+			updateBalanceStmnt.setFloat(1,amountToAdd+balance);
+			updateBalanceStmnt.setInt(2, idStudent);
+			int linesChanged = updateBalanceStmnt.executeUpdate();
+			if(linesChanged == 1 ){
+				if(verbose){
+					System.out.println("Updated balance");
+				}
+			}else{
+				throw new SQLException("Failed to update balance");
+			}
+			transactionStmnt = con.prepareStatement(transactionQuerry);
+			transactionStmnt.setInt(1, idStudent);
+			transactionStmnt.setString(2, date);
+			transactionStmnt.setFloat(3, amountToAdd);
+			transactionStmnt.setString(4, "Student");
+			linesChanged = transactionStmnt.executeUpdate();
+			if(linesChanged == 1){
+				if(verbose){
+					System.out.println("Inserted transaction");
+				}
+			}else{
+				throw new SQLException("Failed to insert transaction");
+			}
+			con.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("Error updating balance, rolling back");
+			try {
+				con.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			amountToAdd = 0;
+		}finally{
+			close();
+		}
+		return Communication.getStudentBalance(username, password, idStudent);
+	}
+
 }

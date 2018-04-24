@@ -57,7 +57,7 @@ public class ConsoleCommands extends Thread {
 	}
 
 	public void run(){
-		
+
 		if(debugMode) {
 			actualUser=User;
 			actualPwd = pwd;
@@ -86,7 +86,7 @@ public class ConsoleCommands extends Thread {
 			case "get date":
 				System.out.println(Communication.getDate(actualUser, actualPwd));
 				break;
-			case "set date":
+			case "set date":{
 				System.out.println("Please input the date you want.");
 				String date = keyboard.nextLine();
 				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -100,8 +100,10 @@ public class ConsoleCommands extends Thread {
 				} catch (ParseException e) {
 					System.err.println("Incorrect date given");
 					e.printStackTrace();
-				}
+				}}
+			break;
 			case "add book":
+			{
 				System.out.println("Adding new book, please give me the author");
 				String author = keyboard.nextLine();
 				System.out.println("And now the title");
@@ -110,8 +112,10 @@ public class ConsoleCommands extends Thread {
 				int amount = keyboard.nextInt();
 				Communication.setNewBook(actualUser, actualPwd, author, title, amount);
 				System.out.println("Added the books");
-				break;
+			}
+			break;
 			case "print books":
+			{
 				if (Communication.verbose){System.out.println("I will now get all the books and print them");}
 				ArrayList<Book> bookList = Communication.getAllBooks(actualUser, actualPwd);
 				if (bookList.size()!=0){
@@ -128,8 +132,10 @@ public class ConsoleCommands extends Thread {
 					}
 					formatter.close();
 				}
-				break;
+			}
+			break;
 			case "verbose on":
+
 				System.out.println("Turning verbose on");
 				Communication.verbose = true;
 				break;
@@ -138,6 +144,7 @@ public class ConsoleCommands extends Thread {
 				Communication.verbose = false;
 				break;
 			case "add student":
+			{
 				String studentName = null;
 				boolean success = false;
 				while(!success){
@@ -149,7 +156,7 @@ public class ConsoleCommands extends Thread {
 				}
 				String telephoneNumber = null;
 				success = false;
-				
+
 				while(!success){
 					System.out.println("Now enter a telephone number");
 					telephoneNumber = keyboard.nextLine();//Due to the mess that is telephone numbers, I am not checking if this is correct
@@ -171,15 +178,17 @@ public class ConsoleCommands extends Thread {
 						System.out.println("Did you just enter a negative id? You fool, try again!");
 					}else{success = true;}
 				}
-				
+
 				if (Communication.addStudent(actualUser, actualPwd, studentName, id, telephoneNumber)){
 					System.out.println("Student added");
 				}else{
 					System.out.println("Failed to add student");
 				}
-				break;
-				
+			}
+			break;
+
 			case "add teacher":
+			{
 				String teacherName = null;
 				boolean successful = false;
 				while(!successful){
@@ -191,7 +200,7 @@ public class ConsoleCommands extends Thread {
 				}
 				String departmentName = null;
 				successful = false;
-				
+
 				while(!successful){
 					System.out.println("Now enter the department name");
 					departmentName = keyboard.nextLine();
@@ -212,15 +221,48 @@ public class ConsoleCommands extends Thread {
 						successful = true;
 					}
 				}
-				
+
 				if (Communication.addTeacher(actualUser, actualPwd, teacherName, teacherID, departmentName)){
 					System.out.println("Teacher added");
 				}else{
 					System.out.println("Failed to add teacher");
 				}
-				break;
+			}
+			break;
 			case "settings":
 				ConsoleCommands.getSetting(actualUser, actualPwd);
+				break;
+
+			case "deposit student":
+			{	
+				System.out.println("Please give me the student id of the student that you want to desposit money for");
+				int id = Integer.valueOf(keyboard.nextLine());
+				if(id>9999){
+					System.out.println("Your id is to long, please enter again");
+				}else if(id<0){
+					System.out.println("Did you just enter a negative id? You fool, try again!");
+				}else{
+					System.out.println("Now enter the full student name");
+					String studentName = keyboard.nextLine();
+					if(studentName.length()>45){
+						System.out.println("Your name is to long, please enter again");
+					}else{
+						int idStudent = Communication.getStudent(actualUser, actualPwd, studentName, id);
+						if(idStudent==0){
+							System.out.println("I could not locate the user");
+						}else{
+							System.out.println("Student found, retrieving current balance");
+							float currentBalance = Communication.getStudentBalance(actualUser, actualPwd, idStudent);
+							System.out.println("The current balance of "+ studentName + " is " + currentBalance);
+							System.out.println("Please enter the amount you want to deposit");
+							float change = Float.valueOf(keyboard.nextLine());
+							System.out.println("The new balance should be " + (currentBalance+change));
+							float newBalance = Communication.updatebalance(actualUser, actualPwd, idStudent, change);
+							System.out.println("Balance of student \"" + studentName + "\" is now " + newBalance);
+						}
+					}
+				}
+			}
 				break;
 			default:
 				System.out.println("Please try again");
@@ -254,13 +296,14 @@ public class ConsoleCommands extends Thread {
 		System.out.println("print books\t\tPrints all the books in the database");
 		System.out.println("add student\t\tAdd a student to the database");
 		System.out.println("add teacher\t\tAdd a teacher to the database");
-		
+		System.out.println("deposit student\t\tDeposit money for a student");
 
 
-		
-		
+
+
+
 	}
-	
+
 	/**
 	 * Will allow the user to retrieve and change a setting in the settings table on the database.
 	 * @param username Username to use to connect
@@ -275,7 +318,7 @@ public class ConsoleCommands extends Thread {
 
 		System.out.println("5\tOnly display all settings");
 		int setting  = Integer.valueOf(keyboard.nextLine());
-		
+
 		int v1,v2,v3,v4;
 		switch (setting){
 		case 1:
@@ -283,7 +326,7 @@ public class ConsoleCommands extends Thread {
 			System.out.println("The current maximum amount of books a student can borrow is "+ v1);
 			System.out.println("Please enter the new amount");
 			{
-				
+
 				int temp = Integer.valueOf(keyboard.nextLine());
 				if(Communication.setSetting(username, password, "StudentBookBorrowLimit", temp)){
 					System.out.println("Updated setting to new value");
@@ -297,7 +340,7 @@ public class ConsoleCommands extends Thread {
 			System.out.println("The current maximum amount of books a teacher can borrow is "+ v2);
 			System.out.println("Please enter the new amount");
 			{
-				
+
 				int temp = Integer.valueOf(keyboard.nextLine());
 				if(Communication.setSetting(username, password, "TeacherBookBorrowLimit", temp)){
 					System.out.println("Updated setting to new value");
@@ -311,7 +354,7 @@ public class ConsoleCommands extends Thread {
 			System.out.println("A student can borrow a book for up to "+ v3 + " days");
 			System.out.println("Please enter the new amount");
 			{
-				
+
 				int temp = Integer.valueOf(keyboard.nextLine());
 				if(Communication.setSetting(username, password, "StudentBookDayLimit", temp)){
 					System.out.println("Updated setting to new value");
@@ -325,7 +368,7 @@ public class ConsoleCommands extends Thread {
 			System.out.println("A teacher can borrow a book for up to "+ v4 + " days");
 			System.out.println("Please enter the new amount");
 			{
-				
+
 				int temp = Integer.valueOf(keyboard.nextLine());
 				if(Communication.setSetting(username, password, "TeacherBookDayLimit", temp)){
 					System.out.println("Updated setting to new value");
