@@ -462,9 +462,9 @@ public class ConsoleCommands extends Thread {
 			break;
 			case "currently borrowed student":
 			{
-				System.out.println("Please input the name of the student that wants to borrow a book");
+				System.out.println("Please input the name of the student");
 				String name = keyboard.nextLine();
-				System.out.println("Please input the id of the students that wants to borrow a book");
+				System.out.println("Please input the id of the student");
 				int studentID = Integer.valueOf(keyboard.nextLine());
 				int internalID = Communication.getStudent(actualUser, actualPwd, name, studentID);
 				if(internalID!=0){//Student found
@@ -479,6 +479,28 @@ public class ConsoleCommands extends Thread {
 					}
 				}
 			}
+			break;
+			case "currently borrowed teacher":
+			{
+				System.out.println("Please input the name of the teacher");
+				String name = keyboard.nextLine();
+				System.out.println("Please input the id of the teacher");
+				String teacherID =keyboard.nextLine();
+				int internalID = Communication.getTeacher(actualUser, actualPwd, name, teacherID);
+				if(internalID!=0){//Student found
+					ArrayList<SpecificBook> booklist = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, false);
+					if(booklist.size()==0){
+						System.out.println("The teacher has not borrowing anything");
+					}else{
+						System.out.println("Teacher is borrowing the following books:");
+						for(int i = 0; i< booklist.size();i++){
+							booklist.get(i).printbook();
+						}
+					}
+				}
+			}
+			break;
+			
 			case "currently borrowed":
 			{
 				ArrayList<BorrowedBook> books = Communication.getBorrowedBooks(actualUser, actualPwd);
@@ -530,25 +552,34 @@ public class ConsoleCommands extends Thread {
 	 */
 	public static void printCommands(){
 		System.out.println("Current commands available");
-		System.out.println("help \t\t\tBrings up this screen");
-		System.out.println("/? \t\t\tBrings up this screen");
+		System.out.println("help \t\t\t\tBrings up this screen");
+		System.out.println("/? \t\t\t\tBrings up this screen");
 
-		System.out.println("stop \t\t\tStops the webserver completely/n");
-		System.out.println("settings\t\tView and change settings in the database");
-		System.out.println("verbose on\t\tTurns verbose messages in the console on");
-		System.out.println("verbose off\t\tTurns verbose messages in the console off\n");
+		System.out.println("stop \t\t\t\tStops the webserver completely\n");
+		System.out.println("settings\t\t\tView and change settings in the database");
+		System.out.println("verbose on\t\t\tTurns verbose messages in the console on");
+		System.out.println("verbose off\t\t\tTurns verbose messages in the console off\n");
 
-		System.out.println("get date\t\tGets the current date the database is operating on");
-		System.out.println("set date\t\tAllows you to change the date that the database is operating on");
-		System.out.println("add book\t\tAdd books, will ask for the required information and amount");
-		System.out.println("add student\t\tAdd a student to the database");
-		System.out.println("add teacher\t\tAdd a teacher to the database");
-		System.out.println("deposit student\t\tDeposit money for a student");
+		System.out.println("get date\t\t\tGets the current date the database is operating on");
+		System.out.println("set date\t\t\tAllows you to change the date that the database is operating on");
+		System.out.println("add book\t\t\tAdd books, will ask for the required information and amount");
+		System.out.println("add student\t\t\tAdd a student to the database");
+		System.out.println("add teacher\t\t\tAdd a teacher to the database");
+		System.out.println("deposit student\t\t\tDeposit money for a student");
 
 
-		System.out.println("\nprint books\t\tPrints all the books in the database");
-		System.out.println("print students\t\tPrints all the students in the database");
-		System.out.println("print teachers\t\tPrints all the teachers in the database");
+		System.out.println("\nprint books\t\t\tPrints all the books in the database");
+		System.out.println("print students\t\t\tPrints all the students in the database");
+		System.out.println("print teachers\t\t\tPrints all the teachers in the database");
+		System.out.println("get available book\t\tGet a book id for a type of book");
+		
+		System.out.println("\nstudent borrow\t\t\tBorrow a book for a student");
+		System.out.println("teacher borrow\t\t\tBorrow a book for a teacher");
+		
+		System.out.println("\ncurrently borrowed\t\tShow all the books that are currently borrowed, including by whom and when they need to be returned");
+		System.out.println("currently borrowed student\tShow what a student is borrowing");
+		System.out.println("currently borrowed teacher\tShow what a teacher is borrowing");
+		
 
 
 
