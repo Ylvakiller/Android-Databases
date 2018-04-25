@@ -652,7 +652,7 @@ public class Communication {
 		return names;
 	}
 
-	public static ArrayList<SpecificBook> getBooksBorrowed(String username, String password, String id, boolean isStudent){
+	public static ArrayList<SpecificBook> getBooksBorrowed(String username, String password, int id, boolean isStudent){
 		connect(username,password);//always connect first to see if the program needs to crash :)
 		String querry = "SELECT `BookID_BookNumberID` FROM `borrow` WHERE `Returned`=0 AND `id`=? AND `isStudent`=?"; //Will get the ids of books currently being borrowed by the student
 		PreparedStatement statement = null;
@@ -660,11 +660,11 @@ public class Communication {
 		ArrayList<SpecificBook> books = new ArrayList<SpecificBook>();
 		try {
 			statement = con.prepareStatement(querry);
-			statement.setString(1, id);
+			statement.setInt(1, id);
 			if(isStudent){
-				statement.setString(1, "1");
+				statement.setString(2, "1");
 			}else{
-				statement.setString(1, "0");
+				statement.setString(2, "0");
 			}
 			ResultSet results = statement.executeQuery();
 			while(results.next()){
@@ -680,10 +680,10 @@ public class Communication {
 		}
 		return books;
 	}
-	
+
 	public static SpecificBook getBookInfoByBookID(String username, String password, int bookID, boolean reconnect){
 		if(reconnect){connect(username, password);}
-		String querry = "SELECT `idBook`,`Author`, `Title` FROM bookinfo A JOIN bookid B ON A.idBook = B.BookID WHERE B.BookNumberID=? ";
+		String querry = "SELECT `idBook`,`Author`, `Title`, `Borrowed` FROM bookinfo A JOIN bookid B ON A.idBook = B.BookID WHERE B.BookNumberID=? ";
 		PreparedStatement statement = null;
 		SpecificBook book = null;
 		int value = 0;
@@ -692,7 +692,7 @@ public class Communication {
 			statement.setInt(1, bookID);
 			ResultSet results = statement.executeQuery();
 			if(results.next()){
-				book = new SpecificBook(results.getInt(1),results.getString(2),results.getString(3),bookID);
+				book = new SpecificBook(results.getInt(1),results.getString(2),results.getString(3),bookID, results.getBoolean(4));
 				System.out.println("Found book");
 			}
 			results.close();
@@ -704,11 +704,104 @@ public class Communication {
 		}
 		return book;
 	}
-	
-	public static void borrowBook(String username, String password, int bookid, String id, boolean isStudent){
+
+	/**
+	 * Will borrow the book, needs to mark the book as borrowed and fill in the details in the borrow table
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param bookid The specific book id
+	 * @param id The id of the one borrowing the book
+	 * @param isStudent true if its a student
+	 * @return 
+	 */
+	public static boolean borrowBook(String username, String password, int bookid, int id, boolean isStudent){
 		String date = Communication.getDate(username, password);
+		boolean success = false;
 		connect(username, password);
-		close();
+		String updateQuerry ="UPDATE `bookid` SET `Borrowed` = 1 WHERE `BookNumberID`=?";
+		String insertQuerry ="INSERT INTO `borrow` (`Date`,`BookID_BookNumberID`,`id`, `isStudent`) VALUES (?,?,?,?)";
+		PreparedStatement updateStmnt = null;
+		PreparedStatement insertStmnt = null;
+		try {
+			con.setAutoCommit(false);
+			updateStmnt = con.prepareStatement(updateQuerry);
+			updateStmnt.setInt(1, bookid);
+			int linesChanged = updateStmnt.executeUpdate();
+			if (linesChanged!=1){
+				if (verbose) {
+					System.err.println("Error setting a book to be borrowed, rolling back");
+				}
+				throw new SQLException("Failed set book to be borrowed");
+			}else{
+				insertStmnt = con.prepareStatement(insertQuerry);
+				insertStmnt.setString(1, date);
+				insertStmnt.setInt(2, bookid);
+				insertStmnt.setInt(3, id);
+				insertStmnt.setBoolean(4, isStudent);
+				linesChanged = insertStmnt.executeUpdate();
+				if (linesChanged!=1){
+					if (verbose) {
+						System.err.println("Error setting a book to be borrowed, rolling back");
+					}
+					throw new SQLException("Failed add book to borrow list");
+				}else{
+					if (verbose) {
+						System.out.println("Book is borrowed");
+					}
+					success = true;
+				}
+			}
+
+		} catch (SQLException e) {
+			try {
+				con.rollback();
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			}
+			e.printStackTrace();
+		}finally{
+			try {
+				con.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			close();
+		}
+		return success;
 	}
-	
+	/**
+	 * Will check if the student is marked as active in the database, is needed before allowing to borrow
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param id The internal student ID from a student
+	 * @return the value stored in a database, false if something goes wrong
+	 */
+	public static boolean checkIfActiveStudent(String username, String password, int id){
+		connect(username, password);
+		
+		String querry = "SELECT `Active` FROM `students` WHERE `idStudent`=?";
+		PreparedStatement studentStmnt = null;
+		boolean value = false;
+		try {
+			studentStmnt = con.prepareStatement(querry);
+			studentStmnt.setInt(1, id);
+			ResultSet results = studentStmnt.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("Student not found");
+				}
+			}else{
+				value = results.getBoolean(1);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		
+		return value;
+	}
+
 }

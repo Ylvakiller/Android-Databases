@@ -311,41 +311,63 @@ public class ConsoleCommands extends Thread {
 						System.out.println((2-i) +" attempts remaining");
 					}
 				}
-				//Now check the amount of books that the student has borrowed
-				ArrayList<SpecificBook> booklist = Communication.getBooksBorrowed(actualUser, actualPwd, String.valueOf(internalID), true);
-				if(booklist.size()<Communication.getSetting(actualUser, actualPwd, "StudentBookBorrowLimit")){
-					if(Communication.verbose){System.out.println("Student can borrow more books");}
-					//Student is allowed to borrow more books based on the limit
-					if(Communication.getStudentBalance(actualUser, actualPwd, internalID)<10){
-						//Student has enough balance, time to find out what the student wants to borrow
-						String temp;
-						while(true){
-							System.out.println("Do you want to select your book by name or id?");//id when for example scanning
-							temp = keyboard.nextLine();
-							temp = temp.toLowerCase();
-							switch(temp){
-							case "id":
-								System.out.println("Please enter the id");
-								int bookid = Integer.valueOf(keyboard.nextLine());
-								SpecificBook book = Communication.getBookInfoByBookID(actualUser, actualPwd,bookid , true);
-								if (book == null){
-									System.out.println("Couldn't find book");
-								}else{
-									
+				//Check if student is active
+				if(Communication.checkIfActiveStudent(actualUser, actualPwd, internalID)){
+
+
+					//Now check the amount of books that the student has borrowed
+					ArrayList<SpecificBook> booklist = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, true);
+					if(booklist.size()<Communication.getSetting(actualUser, actualPwd, "StudentBookBorrowLimit")){
+						if(Communication.verbose){System.out.println("Student can borrow more books");}
+						//Student is allowed to borrow more books based on the limit
+						if(Communication.getStudentBalance(actualUser, actualPwd, internalID)<10){
+							//Student has enough balance, time to find out what the student wants to borrow
+							String temp;
+							boolean bookselected = false;
+							while(!bookselected){
+								System.out.println("Enter quit to go to the main menu, enter id to add a book by its id");//id when for example scanning
+								temp = keyboard.nextLine();
+								temp = temp.toLowerCase();
+								switch(temp){
+								case "id":
+									System.out.println("Please enter the id");
+									int bookid = Integer.valueOf(keyboard.nextLine());
+									SpecificBook book = Communication.getBookInfoByBookID(actualUser, actualPwd,bookid , true);
+									if (book == null){
+										System.out.println("Couldn't find book");
+									}else{
+										if(book.borrowed){
+											System.out.println("Book is already on loan, try again");
+										}else{
+											if (Communication.borrowBook(actualUser, actualPwd, book.bookNumberID, internalID, true)){
+												System.out.print("Book succesfully borrowed");
+												ArrayList<SpecificBook> booklist2 = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, true);
+												if(booklist2.size()<Communication.getSetting(actualUser, actualPwd, "StudentBookBorrowLimit")){
+													System.out.println(", do you want to borrow another book?");
+												}else{
+													System.out.println("\nYou reached the maximum amount of books, returning to main menu");
+													bookselected = true;
+												}
+											}else{
+												System.out.println("Something went wrong, please try again");
+											}
+										}
+									}
+									break;
+								case "quit":
+									bookselected = true;
+									break;
+								default:
+									System.out.println("Incorrect decision");
+									break;
 								}
-								break;
-							case "name":
-								break;
-							default:
-								System.out.println("Incorrect decision");
-								break;
 							}
+						}else{
+							System.out.println("The balance of this student is to low");
 						}
 					}else{
-						System.out.println("The balance of this student is to low");
+						System.out.println("Student cannot borrow more books");
 					}
-				}else{
-					System.out.println("Student cannot borrow more books");
 				}
 
 			}
@@ -358,7 +380,7 @@ public class ConsoleCommands extends Thread {
 				int studentID = Integer.valueOf(keyboard.nextLine());
 				int internalID = Communication.getStudent(actualUser, actualPwd, name, studentID);
 				if(internalID!=0){//Student found
-					ArrayList<SpecificBook> booklist = Communication.getBooksBorrowed(actualUser, actualPwd, String.valueOf(internalID), true);
+					ArrayList<SpecificBook> booklist = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, true);
 					if(booklist.size()==0){
 						System.out.println("The student has not borrowing anything");
 					}else{
