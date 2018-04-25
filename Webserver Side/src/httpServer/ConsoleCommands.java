@@ -63,13 +63,14 @@ public class ConsoleCommands extends Thread {
 			actualUser=User;
 			actualPwd = pwd;
 		}else {
-			System.out.println("this stuff should get the username from the http stuff");
+			System.out.println("this bit should get the username from the http stuff");//Not yet implemented
 			actualUser = User;
 			actualPwd = pwd;
 		}
 		Communication.getBorrowedBooks(actualUser, actualPwd);
 		System.out.println("Console command interperenter starting");
 		ConsoleCommands.printCommands();
+		Communication.getAllLateBooks(actualUser, actualPwd);
 		keyboard = new Scanner(System.in);
 		while (true){
 			String input = keyboard.nextLine();

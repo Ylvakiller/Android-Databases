@@ -32,7 +32,7 @@ public class BorrowedBook extends SpecificBook {
 		formatter.close();
 	}
 	
-	private Date addDays(String username, String password){
+	public Date addDays(String username, String password){
 		int amount = 0;
 		if(isStudent){
 			amount = Communication.getSetting(username, password, "StudentBookDayLimit");

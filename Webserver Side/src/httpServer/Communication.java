@@ -7,7 +7,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 public class Communication {
@@ -1110,7 +1113,26 @@ public class Communication {
 	}
 	
 	public static void getAllLateBooks(String username, String password){
-		
+		ArrayList<BorrowedBook> borrowed = Communication.getBorrowedBooks(username, password);
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		java.util.Date date = null;
+		try {
+			date = dateFormat.parse(Communication.getDate(username, password));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		boolean first = true;
+		for (Iterator iterator = borrowed.iterator(); iterator.hasNext();) {
+			BorrowedBook borrowedBook = (BorrowedBook) iterator.next();
+			if(borrowedBook.addDays(username, password).before(date)){
+				if(first){
+					System.out.println("Currently it is " + dateFormat.format(date));
+					System.out.println("The following books are late:");
+					first = false;
+				}
+				borrowedBook.printDetails(username, password);
+			}
+		}
 	}
 
 }
