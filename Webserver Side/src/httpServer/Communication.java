@@ -526,7 +526,7 @@ public class Communication {
 	 * @param amountToAdd The amount to add to a students balance
 	 * @return the new balance that is stored, is taken from the {@link #getStudentBalance(String, String, int)} method
 	 */
-	public static float updatebalance(String username, String password, int idStudent, float amountToAdd){
+	public static float updatebalanceStudent(String username, String password, int idStudent, float amountToAdd){
 		String date = Communication.getDate(username, password);//First get the date, before opening a new connection
 		float balance = Communication.getStudentBalance(username, password, idStudent);
 		connect(username,password);//always connect first to see if the program needs to crash :)
@@ -579,6 +579,141 @@ public class Communication {
 			close();
 		}
 		return Communication.getStudentBalance(username, password, idStudent);
+	}
+	
+	
+	/**
+	 * Gets the internal id used by the database for a given Teacher
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param name The name as how the teacher is stored in the database
+	 * @param id The Teacher id as is stored in the database
+	 * @return the internal database id for a teacher, 0 if not found
+	 */
+	public static int getTeacher(String username, String password, String name,String id){
+		connect(username,password);//always connect first to see if the program needs to crash :)
+		String querry = "SELECT `idTeacher` FROM `teachers` WHERE `TeacherID`=? AND `Name`=?";
+		PreparedStatement teacherStmnt = null;
+		int value = 0;
+		try {
+			teacherStmnt = con.prepareStatement(querry);
+			teacherStmnt.setString(1, id);
+			teacherStmnt.setString(2, name);
+			ResultSet results = teacherStmnt.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("Teacher not found");
+				}
+			}else{
+				value = results.getInt(1);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		return value;
+	}
+
+	/**
+	 * Retrieves the balance of a teacher
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param idTeacher The internal id as found by {@link #getTeacher(String, String, String, String)}}
+	 * @return The balance of a teacher
+	 */
+	public static float getTeacherBalance(String username, String password,int idTeacher){
+
+		connect(username,password);//always connect first to see if the program needs to crash :)
+
+		float balance = 0;
+		String querry = "SELECT `Balance` FROM `balanceteacher` WHERE `Teachers_idTeacher`=?";
+		PreparedStatement teacherStmnt = null;
+		try {
+			teacherStmnt = con.prepareStatement(querry);
+			teacherStmnt.setInt(1,idTeacher);
+			ResultSet results = teacherStmnt.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("balance not found");
+				}
+			}else{
+				balance = results.getFloat(1);
+			}
+			results.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		return balance;
+	}
+
+	/**
+	 * Will update the balance of a teacher based on its current balance as found by {@link #getTeacherBalance(String, String, int)}} and the given amount to add
+	 * Uses the {@link #getDate(String, String)} to make sure it updates the transaction table correctly
+	 * 
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param idTeacher The internal id as found by {@link #getTeacher(String, String, String, String)}}
+	 * @param amountToAdd The amount to add to a students balance
+	 * @return the new balance that is stored, is taken from the {@link #getTeacherBalance(String, String, int)} method to check
+	 */
+	public static float updatebalanceTeacher(String username, String password, int idTeacher, float amountToAdd){
+		String date = Communication.getDate(username, password);//First get the date, before opening a new connection
+		float balance = Communication.getTeacherBalance(username, password, idTeacher);
+		connect(username,password);//always connect first to see if the program needs to crash :)
+
+
+		String updateQuerry ="UPDATE `balanceteachers` SET `balance` = ? WHERE `teachers_idTeacher`=?";
+		String transactionQuerry ="INSERT INTO `transaction` (`idUser`,`Date`,`Change`, `idType`) VALUES (?,?,?,?)";
+		PreparedStatement updateBalanceStmnt = null;
+		PreparedStatement transactionStmnt = null;
+		try {
+			con.setAutoCommit(false);
+			updateBalanceStmnt = con.prepareStatement(updateQuerry);
+			if(verbose){
+				System.out.println("The new balance should be " + (amountToAdd+balance));
+			}
+			updateBalanceStmnt.setFloat(1,amountToAdd+balance);
+			updateBalanceStmnt.setInt(2, idTeacher);
+			int linesChanged = updateBalanceStmnt.executeUpdate();
+			if(linesChanged == 1 ){
+				if(verbose){
+					System.out.println("Updated balance");
+				}
+			}else{
+				throw new SQLException("Failed to update balance");
+			}
+			transactionStmnt = con.prepareStatement(transactionQuerry);
+			transactionStmnt.setInt(1, idTeacher);
+			transactionStmnt.setString(2, date);
+			transactionStmnt.setFloat(3, amountToAdd);
+			transactionStmnt.setString(4, "0");
+			linesChanged = transactionStmnt.executeUpdate();
+			if(linesChanged == 1){
+				if(verbose){
+					System.out.println("Inserted transaction");
+				}
+			}else{
+				throw new SQLException("Failed to insert transaction");
+			}
+			con.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("Error updating balance, rolling back");
+			try {
+				con.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			amountToAdd = 0;
+		}finally{
+			close();
+		}
+		return Communication.getStudentBalance(username, password, idTeacher);
 	}
 
 	/**
@@ -652,6 +787,14 @@ public class Communication {
 		return names;
 	}
 
+	/**
+	 * Gets an arrayList of specific books that are currently borrowed by a student or teacher
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param id the internal id of the user to search for
+	 * @param isStudent true if the internal id is for a student
+	 * @return an Arraylist of specificbooks, or null if no books are being borrowed by the teacher
+	 */
 	public static ArrayList<SpecificBook> getBooksBorrowed(String username, String password, int id, boolean isStudent){
 		connect(username,password);//always connect first to see if the program needs to crash :)
 		String querry = "SELECT `BookID_BookNumberID` FROM `borrow` WHERE `Returned`=0 AND `id`=? AND `isStudent`=?"; //Will get the ids of books currently being borrowed by the student
@@ -681,6 +824,14 @@ public class Communication {
 		return books;
 	}
 
+	/**
+	 * Gets a specific book based on the internal id with all the details from that book
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param bookID The id to get the details from
+	 * @param reconnect set to true if you are running this stand alone, set to false if you are running it whilst already connected to the database
+	 * @return a specificBook with all the variables like id, author, title, borrowed, internal id
+	 */
 	public static SpecificBook getBookInfoByBookID(String username, String password, int bookID, boolean reconnect){
 		if(reconnect){connect(username, password);}
 		String querry = "SELECT `idBook`,`Author`, `Title`, `Borrowed` FROM bookinfo A JOIN bookid B ON A.idBook = B.BookID WHERE B.BookNumberID=? ";
@@ -712,7 +863,7 @@ public class Communication {
 	 * @param bookid The specific book id
 	 * @param id The id of the one borrowing the book
 	 * @param isStudent true if its a student
-	 * @return 
+	 * @return true if successfully borrowed a book
 	 */
 	public static boolean borrowBook(String username, String password, int bookid, int id, boolean isStudent){
 		String date = Communication.getDate(username, password);
@@ -789,6 +940,41 @@ public class Communication {
 			if(!results.next()){
 				if(verbose){
 					System.out.println("Student not found");
+				}
+			}else{
+				value = results.getBoolean(1);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		
+		return value;
+	}
+	
+	/**
+	 * Will check if the teacher is marked as active in the database, is needed before allowing to borrow
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param id The internal teacher ID from a student
+	 * @return the value stored in a database, false if something goes wrong
+	 */
+	public static boolean checkIfActiveTeacher(String username, String password, int id){
+		connect(username, password);
+		
+		String querry = "SELECT `Active` FROM `teachers` WHERE `idTeacher`=?";
+		PreparedStatement teacherStmnt = null;
+		boolean value = false;
+		try {
+			teacherStmnt = con.prepareStatement(querry);
+			teacherStmnt.setInt(1, id);
+			ResultSet results = teacherStmnt.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("Teacher not found");
 				}
 			}else{
 				value = results.getBoolean(1);

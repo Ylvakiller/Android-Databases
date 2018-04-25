@@ -257,7 +257,7 @@ public class ConsoleCommands extends Thread {
 							System.out.println("Please enter the amount you want to deposit");
 							float change = Float.valueOf(keyboard.nextLine());
 							System.out.println("The new balance should be " + (currentBalance+change));
-							float newBalance = Communication.updatebalance(actualUser, actualPwd, idStudent, change);
+							float newBalance = Communication.updatebalanceStudent(actualUser, actualPwd, idStudent, change);
 							System.out.println("Balance of student \"" + studentName + "\" is now " + newBalance);
 						}
 					}
@@ -340,11 +340,13 @@ public class ConsoleCommands extends Thread {
 											System.out.println("Book is already on loan, try again");
 										}else{
 											if (Communication.borrowBook(actualUser, actualPwd, book.bookNumberID, internalID, true)){
-												System.out.print("Book succesfully borrowed");
+												
 												ArrayList<SpecificBook> booklist2 = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, true);
 												if(booklist2.size()<Communication.getSetting(actualUser, actualPwd, "StudentBookBorrowLimit")){
+													System.out.print("Book succesfully borrowed");
 													System.out.println(", do you want to borrow another book?");
 												}else{
+													System.out.print("Book succesfully borrowed");
 													System.out.println("\nYou reached the maximum amount of books, returning to main menu");
 													bookselected = true;
 												}
@@ -367,6 +369,90 @@ public class ConsoleCommands extends Thread {
 						}
 					}else{
 						System.out.println("Student cannot borrow more books");
+					}
+				}
+
+			}
+			break;
+
+			case "teacher borrow":
+			{
+				int internalID = 0;
+				for(int i = 0; i<3;i++){//Smaller then 4 to make sure I can stop the program here already
+					if(i==2){
+						System.err.println("You have entered the wrong details 2 times, closing program");
+						close();
+					}
+					System.out.println("Please input the name of the teacher that wants to borrow a book");
+					String name = keyboard.nextLine();
+					System.out.println("Please input the id of the teacher that wants to borrow a book");
+					String teacherID = keyboard.nextLine();
+					if(teacherID.length()!=3){
+						System.err.println("Incorrect teacher id length");
+					}
+					internalID = Communication.getTeacher(actualUser, actualPwd, name, teacherID);
+					if(internalID!=0){//teacher found
+						break;
+					}else{
+						System.out.println("Incorrect details, teacher not found");
+						System.out.println((2-i) +" attempts remaining");
+					}
+				}
+				//Check if teacher is active
+				if(Communication.checkIfActiveTeacher(actualUser, actualPwd, internalID)){
+
+
+					//Now check the amount of books that the teacher has borrowed
+					ArrayList<SpecificBook> booklist = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, false);
+					if(booklist.size()<Communication.getSetting(actualUser, actualPwd, "TeacherBookBorrowLimit")){
+						if(Communication.verbose){System.out.println("Teacher can borrow more books");}
+						//Teacher is allowed to borrow more books based on the limit
+
+						String temp;
+						boolean bookselected = false;
+						while(!bookselected){
+							System.out.println("Enter quit to go to the main menu, enter id to add a book by its id");//id when for example scanning
+							temp = keyboard.nextLine();
+							temp = temp.toLowerCase();
+							switch(temp){
+							case "id":
+								System.out.println("Please enter the id");
+								int bookid = Integer.valueOf(keyboard.nextLine());
+								SpecificBook book = Communication.getBookInfoByBookID(actualUser, actualPwd,bookid , true);
+								if (book == null){
+									System.out.println("Couldn't find book");
+								}else{
+									if(book.borrowed){
+										System.out.println("Book is already on loan, try again");
+									}else{
+										if (Communication.borrowBook(actualUser, actualPwd, book.bookNumberID, internalID, false)){
+											
+											ArrayList<SpecificBook> booklist2 = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, false);
+											if(booklist2.size()<Communication.getSetting(actualUser, actualPwd, "TeacherBookBorrowLimit")){
+												System.out.print("Book succesfully borrowed");
+												System.out.println(", do you want to borrow another book?");
+											}else{
+												System.out.print("Book succesfully borrowed");
+												System.out.println("\nYou reached the maximum amount of books, returning to main menu");
+												bookselected = true;
+											}
+										}else{
+											System.out.println("Something went wrong, please try again");
+										}
+									}
+								}
+								break;
+							case "quit":
+								bookselected = true;
+								break;
+							default:
+								System.out.println("Incorrect decision");
+								break;
+							}
+						}
+
+					}else{
+						System.out.println("Teacher cannot borrow more books");
 					}
 				}
 
