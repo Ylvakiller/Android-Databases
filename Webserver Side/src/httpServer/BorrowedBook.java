@@ -10,16 +10,24 @@ public class BorrowedBook extends SpecificBook {
 	private Date dateBorrowed;
 	private String name;
 	private boolean isStudent;
-	public BorrowedBook(int bookID, String Author, String Title, int id, Date date, String loanerName, boolean isStudent) {
-		super(bookID, Author, Title, id, true);
+	public BorrowedBook(int bookID, String Author, String Title, int bookNumberID, Date date, String loanerName, boolean isStudent) {
+		super(bookID, Author, Title, bookNumberID, true);
 		dateBorrowed = date;
 		name = loanerName;
 		this.isStudent = isStudent;
 	}
 	public void printDetails(String username, String password){
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+		String date = dateFormat.format(addDays(username, password));
+		String type;
+		if(isStudent){
+			type = "Student";
+		}else{
+			type = "Teacher";
+		}
 		StringBuilder builder = new StringBuilder();
 		Formatter formatter = new Formatter(builder);
-		formatter.format("|%-10d|%-30s|%-30s|%-75s", addDays(username, password).toString(), name,author,title);
+		formatter.format("|%-17s|%-5d|%-8s|%-30s|%-30s|%-75s", date , bookNumberID,type,  name,author,title);
 		System.out.format(builder.toString()+"\n");//Moved the \n out of the stringuilder cause it wasnt being recognised
 		formatter.close();
 	}

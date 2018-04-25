@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.Iterator;
 import java.util.Scanner;
 
 
@@ -66,7 +67,7 @@ public class ConsoleCommands extends Thread {
 			actualUser = User;
 			actualPwd = pwd;
 		}
-
+		Communication.getBorrowedBooks(actualUser, actualPwd);
 		System.out.println("Console command interperenter starting");
 		ConsoleCommands.printCommands();
 		keyboard = new Scanner(System.in);
@@ -89,6 +90,7 @@ public class ConsoleCommands extends Thread {
 			case "set date":{
 				System.out.println("Please input the date you want.");
 				String date = keyboard.nextLine();
+				date = date.replace("/", "-");
 				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 				Date dateObject;
 				try {
@@ -109,7 +111,7 @@ public class ConsoleCommands extends Thread {
 				System.out.println("And now the title");
 				String title = keyboard.nextLine();
 				System.out.println("And now the amount to add");
-				int amount = keyboard.nextInt();
+				int amount = Integer.getInteger(keyboard.nextLine());
 				Communication.setNewBook(actualUser, actualPwd, author, title, amount);
 				System.out.println("Added the books");
 			}
@@ -477,6 +479,35 @@ public class ConsoleCommands extends Thread {
 					}
 				}
 			}
+			case "currently borrowed":
+			{
+				ArrayList<BorrowedBook> books = Communication.getBorrowedBooks(actualUser, actualPwd);
+				if(books.isEmpty()){
+					System.out.println("There currently are no books on loan");
+					
+				}else{
+					System.out.println("|Last return date |id\t|Type\t |Name\t\t\t\t|Author\t\t\t\t|Title");
+					for (Iterator iterator = books.iterator(); iterator
+							.hasNext();) {
+						BorrowedBook borrowedBook = (BorrowedBook) iterator
+								.next();
+						borrowedBook.printDetails(actualUser, actualPwd);
+					}
+				}
+			}
+			break;
+			case "get available book":
+				System.out.println("Please enter the id of a book and I will return a copy that we have in stock");
+				int id = Integer.parseInt(keyboard.nextLine());
+				ArrayList<Integer> bookNumberIDs = Communication.getAllBookNumbersByID(actualUser, actualPwd, id);
+				for (Iterator iterator = bookNumberIDs.iterator(); iterator
+						.hasNext();) {
+					Integer number = (Integer) iterator.next();
+					if(!Communication.isBorrowed(actualUser, actualPwd, number)){
+						System.out.println("You can borrow book number " + number);
+						break;
+					}
+				}
 			break;
 			default:
 				System.out.println("Please try again");
@@ -612,7 +643,6 @@ public class ConsoleCommands extends Thread {
 			System.out.println("Incorrect setting, returning to main screen");
 			break;
 		}
-		keyboard.nextLine();
 	}
 
 }

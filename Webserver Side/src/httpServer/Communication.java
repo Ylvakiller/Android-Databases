@@ -96,7 +96,7 @@ public class Communication {
 		connect(username, password);
 		int linesChanged = 0;
 
-		String querry = "INSERT INTO Date (`DatabaseDate`) VALUES (?)";
+		String querry = "INSERT INTO date (`DataBaseDate`) VALUES (?)";
 		PreparedStatement dateInsert = null;
 
 		if(verbose){System.out.println(querry);}
@@ -242,7 +242,12 @@ public class Communication {
 		return idNumber;
 	}
 
-
+	/**
+	 * Gets a list of all the book types in the database
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @return An arraylist with book types
+	 */
 	public static ArrayList<Book> getAllBooks(String username, String password) {
 		connect(username, password);
 		String retrieveAllBooks = "SELECT * FROM `bookinfo` ORDER BY `idBook` ASC";
@@ -255,7 +260,7 @@ public class Communication {
 			while (allBooks.next()){
 				int id = allBooks.getInt(1); //Retrieve the next BookID on the list
 				ArrayList<Integer> bookNumberIDs = Communication.getAllBookNumbersByID(username, password, id);
-				bookList.add(new Book(id, allBooks.getString(2), allBooks.getString(3)));
+				bookList.add(new Book(id, allBooks.getString(2), allBooks.getString(3), bookNumberIDs.size()));
 
 			}
 			allBooks.close();
@@ -581,8 +586,8 @@ public class Communication {
 		}
 		return Communication.getStudentBalance(username, password, idStudent);
 	}
-	
-	
+
+
 	/**
 	 * Gets the internal id used by the database for a given Teacher
 	 * @param username Username to use to connect
@@ -845,7 +850,7 @@ public class Communication {
 			ResultSet results = statement.executeQuery();
 			if(results.next()){
 				book = new SpecificBook(results.getInt(1),results.getString(2),results.getString(3),bookID, results.getBoolean(4));
-				System.out.println("Found book");
+				
 			}
 			results.close();
 
@@ -930,7 +935,7 @@ public class Communication {
 	 */
 	public static boolean checkIfActiveStudent(String username, String password, int id){
 		connect(username, password);
-		
+
 		String querry = "SELECT `Active` FROM `students` WHERE `idStudent`=?";
 		PreparedStatement studentStmnt = null;
 		boolean value = false;
@@ -952,10 +957,10 @@ public class Communication {
 		}finally{
 			close();
 		}
-		
+
 		return value;
 	}
-	
+
 	/**
 	 * Will check if the teacher is marked as active in the database, is needed before allowing to borrow
 	 * @param username Username to use to connect
@@ -965,7 +970,7 @@ public class Communication {
 	 */
 	public static boolean checkIfActiveTeacher(String username, String password, int id){
 		connect(username, password);
-		
+
 		String querry = "SELECT `Active` FROM `teachers` WHERE `idTeacher`=?";
 		PreparedStatement teacherStmnt = null;
 		boolean value = false;
@@ -987,33 +992,111 @@ public class Communication {
 		}finally{
 			close();
 		}
-		
+
 		return value;
+	}
+
+	/**
+	 * Will get all the books currently borrowed
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @return A list of borrowed books
+	 */
+	public static ArrayList<BorrowedBook> getBorrowedBooks(String username, String password){
+		connect(username, password);
+
+		String querry = "SELECT `idBook`,`Author`,`Title`,`BookNumberID`,`Date`,`isStudent`,`id` FROM bookinfo A JOIN bookid B ON A.idBook = B.BookID JOIN borrow C ON B.BookNumberID = C.BookID_BookNumberID WHERE C.Returned='0' ";
+		PreparedStatement allButNameStmnt = null;
+		ResultSet results = null;
+
+		ArrayList<BorrowedBook> books = new ArrayList<BorrowedBook>();
+		try {
+			allButNameStmnt = con.prepareStatement(querry);
+			results = allButNameStmnt.executeQuery();
+			while(results.next()){
+				String name = getNameByID(results.getInt(7),results.getBoolean(6), username, password);
+				BorrowedBook book = new BorrowedBook(results.getInt(1), results.getString(2), results.getString(3), results.getInt(4), results.getDate(5), name, results.getBoolean(6));
+				books.add(book);
+			}
+			results.close();
+
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				if(!results.isClosed()){
+					results.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			close();
+		}
+		return books;
+	}
+
+	/**
+	 * Gets the name of student or teacher
+	 * @param id the internal id of the student or teacher
+	 * @param isStudent true if the id is for a student, false for a teacher
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @return The name as stored in the database
+	 * @throws SQLException throws exception if communication with the database is not working correctly, or if the user id was not found
+	 */
+	private static String getNameByID(int id, boolean isStudent, String username, String password) throws SQLException{
+		if(con.isClosed()){
+			connect(username,password);
+		}
+		String first, second, name;
+		if (isStudent){
+			first = "students";
+			second =  "idStudent";
+		}else{
+			first = "teachers";
+			second = "idTeacher";
+		}
+		String nameQuerry = "SELECT `Name` FROM "+first+" WHERE "+second+"=?";//first ? is either the students or teachers table, second is idStudent or idTeacher, third is the id from the first querry
+		PreparedStatement nameStmnt = null;
+		nameStmnt = con.prepareStatement(nameQuerry);
+		nameStmnt.setInt(1, id);
+		ResultSet results = nameStmnt.executeQuery();
+		if(!results.next()){
+			if(verbose){
+				System.out.println("Error, I need to exit, user not present");
+			}
+			throw new SQLException("User id found in borrow table but not in teacher or student table");
+		}else{
+			name = results.getString(1);
+		}
+		results.close();
+		return name;
 	}
 	
 	/**
-	 * Will get the date at which a book is borrowed
+	 * Will tell you if a book is currently borrowed
 	 * @param username Username to use to connect
 	 * @param password Password to use to connect
-	 * @param bookID The bookNumberID to search for
-	 * @return first char is 0 or 1 depending on if its borrowed by a student, 
+	 * @param id The id of the book to check
+	 * @return true if the book is currently on loan
 	 */
-	public static BorrowedBook getBorrowedBook(String username, String password, int bookID){
+	public static boolean isBorrowed(String username, String password, int id){
 		connect(username, password);
-		
-		String querry = "SELECT `Date`, `isStudent` FROM `Borrow` WHERE `BookID_BookNumberID`=? AND `Returned`='0'";
-		PreparedStatement dateStmnt = null;
-		String value = null;
+
+		String querry = "SELECT `Borrowed` FROM `bookid` WHERE `BookNumberID`=?";
+		PreparedStatement borrowedStatement = null;
+		boolean value = false;
 		try {
-			dateStmnt = con.prepareStatement(querry);
-			dateStmnt.setInt(1, bookID);
-			ResultSet results = dateStmnt.executeQuery();
+			borrowedStatement = con.prepareStatement(querry);
+			borrowedStatement.setInt(1, id);
+			ResultSet results = borrowedStatement.executeQuery();
 			if(!results.next()){
 				if(verbose){
-					System.out.println("Book not found");
+					System.out.println("book not found");
 				}
 			}else{
-				value = results.getString(1)+results.getDate(2).toString();
+				value = results.getBoolean(1);
 			}
 			results.close();
 
@@ -1022,8 +1105,12 @@ public class Communication {
 		}finally{
 			close();
 		}
-		
+
 		return value;
+	}
+	
+	public static void getAllLateBooks(String username, String password){
+		
 	}
 
 }
