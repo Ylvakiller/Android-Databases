@@ -1,6 +1,7 @@
 package httpServer;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -978,6 +979,41 @@ public class Communication {
 				}
 			}else{
 				value = results.getBoolean(1);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		
+		return value;
+	}
+	
+	/**
+	 * Will get the date at which a book is borrowed
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param bookID The bookNumberID to search for
+	 * @return first char is 0 or 1 depending on if its borrowed by a student, 
+	 */
+	public static BorrowedBook getBorrowedBook(String username, String password, int bookID){
+		connect(username, password);
+		
+		String querry = "SELECT `Date`, `isStudent` FROM `Borrow` WHERE `BookID_BookNumberID`=? AND `Returned`='0'";
+		PreparedStatement dateStmnt = null;
+		String value = null;
+		try {
+			dateStmnt = con.prepareStatement(querry);
+			dateStmnt.setInt(1, bookID);
+			ResultSet results = dateStmnt.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("Book not found");
+				}
+			}else{
+				value = results.getString(1)+results.getDate(2).toString();
 			}
 			results.close();
 

@@ -1,8 +1,8 @@
 package httpServer;
 
 public class SpecificBook extends Book {
-	int bookNumberID;
-	boolean borrowed;
+	public int bookNumberID;
+	public boolean borrowed;
 	public SpecificBook(int bookID, String Author, String Title, int id) {
 		super(bookID, Author, Title);
 		this.bookNumberID = id;
@@ -19,5 +19,6 @@ public class SpecificBook extends Book {
 		System.out.print("|"+bookNumberID +"\t|"+borrowed+"\t");
 		super.printBook();
 	}
+	
 
 }
