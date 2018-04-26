@@ -7,8 +7,10 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -123,9 +125,19 @@ public class ServerRunner {
 			case "POST":
 				switch (parts[1]) {
 					case "DATE":
-						int response;
-						
-						response = Communication.setDateStorred(parts[3], parts[4], parts[2]);
+						int response = 0;
+						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+						Date dateObject;
+						try {
+							dateObject = format.parse(parts[2]);
+							System.out.println("Date parsed as \t" + dateObject.toString());
+							response=Communication.setDateStorred(parts[3], parts[4], format.format(dateObject));
+						} catch (ParseException e) {
+							System.err.println("Incorrect date given");
+							e.printStackTrace();
+						}
+						System.out.println("Response is " + response);
+						//response = Communication.setDateStorred(parts[3], parts[4], parts[2]);
 						if (response == 1) {
 							// lines are updated, atleast 1.
 							error = 201;

@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 
 
@@ -97,6 +98,7 @@ public class Communication {
 	 */
 	public static int setDateStorred(String username, String password, String date){
 		connect(username, password);
+		System.out.println("Setting the new date");
 		int linesChanged = 0;
 
 		String querry = "INSERT INTO date (`DataBaseDate`) VALUES (?)";
@@ -124,7 +126,7 @@ public class Communication {
 			close();
 		}
 
-		if (linesChanged==0){
+		if (linesChanged==1){
 			return 1;
 		}else{
 			return 0;
@@ -542,7 +544,7 @@ public class Communication {
 
 
 		String updateQuerry ="UPDATE `balancestudents` SET `balance` = ? WHERE `Students_idStudent`=?";
-		String transactionQuerry ="INSERT INTO `transaction` (`idUser`,`Date`,`Change`, `idType`) VALUES (?,?,?,?)";
+		String transactionQuerry ="INSERT INTO `transaction` (`idUser`,`Date`,`Change`, `idStudent`) VALUES (?,?,?,?)";
 		PreparedStatement updateBalanceStmnt = null;
 		PreparedStatement transactionStmnt = null;
 		try {
@@ -853,7 +855,7 @@ public class Communication {
 			ResultSet results = statement.executeQuery();
 			if(results.next()){
 				book = new SpecificBook(results.getInt(1),results.getString(2),results.getString(3),bookID, results.getBoolean(4));
-				
+
 			}
 			results.close();
 
@@ -1048,7 +1050,7 @@ public class Communication {
 	 * @return The name as stored in the database
 	 * @throws SQLException throws exception if communication with the database is not working correctly, or if the user id was not found
 	 */
-	private static String getNameByID(int id, boolean isStudent, String username, String password) throws SQLException{
+	public static String getNameByID(int id, boolean isStudent, String username, String password) throws SQLException{
 		if(con.isClosed()){
 			connect(username,password);
 		}
@@ -1076,7 +1078,7 @@ public class Communication {
 		results.close();
 		return name;
 	}
-	
+
 	/**
 	 * Will tell you if a book is currently borrowed
 	 * @param username Username to use to connect
@@ -1111,8 +1113,13 @@ public class Communication {
 
 		return value;
 	}
-	
-	public static void getAllLateBooks(String username, String password){
+	/**
+	 * Will print the details of all the books that are late
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 */
+
+	public static void printAllLateBooks(String username, String password){
 		ArrayList<BorrowedBook> borrowed = Communication.getBorrowedBooks(username, password);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		java.util.Date date = null;
@@ -1134,5 +1141,487 @@ public class Communication {
 			}
 		}
 	}
+	/**
+	 * Will get the borrowID of the copy of the book that is currently borrowed
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param BookNumberID The bookNumberID to search for
+	 * @return The borrowID as stored in the database
+	 */
+	public static int getBorrowID(String username, String password, int BookNumberID){
+		connect(username, password);
+
+		String querry = "SELECT `BorrowID` FROM `borrow` WHERE `BookID_BookNumberID`=? AND `Returned`='0'";
+		PreparedStatement borrowedStatement = null;
+		int value = 0;
+		try {
+			borrowedStatement = con.prepareStatement(querry);
+			borrowedStatement.setInt(1, BookNumberID);
+			ResultSet results = borrowedStatement.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("book not found");
+				}
+			}else{
+				value = results.getInt(1);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+
+		return value;
+	}
+
+	/**
+	 * Will return any fine that might need to be paid when submitting a book
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param borrowID The internal borrowID to search for, as obtained by {@link #getBorrowID(String, String, int)}
+	 * @return a long representation of the fine for this specific borrowID
+	 */
+	public static double calculateFine(String username, String password, int borrowID, boolean reconnect){
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		java.util.Date date = null;
+		try {
+			date = dateFormat.parse(Communication.getDate(username, password));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		if(reconnect){connect(username, password);}
+		String querry = "SELECT `Date`, `isStudent` FROM `borrow` WHERE `borrowID`=?";
+		PreparedStatement borrowedStatement = null;
+		String value = null;
+		boolean student = false;
+		try {
+			if(con.isClosed()){
+				connect(username, password);
+			}
+			borrowedStatement = con.prepareStatement(querry);
+			borrowedStatement.setInt(1, borrowID);
+			ResultSet results = borrowedStatement.executeQuery();
+			if(!results.next()){
+				if(verbose){
+					System.out.println("book not found");
+				}
+			}else{
+				value = results.getString(1);
+				student = results.getBoolean(2);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			if(reconnect){close();}
+		}
+
+		java.util.Date borrowDate = null;
+		try {
+			borrowDate = dateFormat.parse(value);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		if(date.before(borrowDate)){//Means the currentdate is before the borrowdate, so you are in the past
+			return 0;
+		}else{
+			Calendar borrowDeadline = Calendar.getInstance();
+			borrowDeadline.setTime(borrowDate);
+			int amount = 0;
+			if(student){
+				amount = Communication.getSetting(username, password, "StudentBookDayLimit");
+			}else{
+				amount = Communication.getSetting(username, password, "TeacherBookDayLimit");
+			}
+			borrowDeadline.add(Calendar.DATE, amount);
+			if(borrowDeadline.after(date)){//Deadline has not yet passed
+				return 0;
+			}else{
+				long deadline = borrowDeadline.getTime().getTime();
+				long currentTime = date.getTime();
+				long timeDifference = currentTime-deadline;
+				long timeDifferenceDays = timeDifference/(1000 * 60 * 60 * 24);//the times obtained are from 1970 in millisecond, so divide by 1000 to get seconds, then 60 60 and 24 to get to days
+				return timeDifferenceDays/2;//50 cents per day
+			}
+		}
+	}
+
+	/**
+	 * Will get all the fines of all the students who are borrowing anything
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @return An ArrayList of long arrays, the first cell is the fine, the second is the idStudent
+	 */
+	public static ArrayList<long[]> getAllFinesStudents(String username, String password){
+		connect(username, password);
+
+		String querry = "SELECT `BorrowID`, `id` FROM `borrow` WHERE `isStudent`='1' AND `Returned`='0'";
+		PreparedStatement borrowedStatement = null;
+		ArrayList<int[]> loans = new ArrayList<int[]>();
+
+		try {
+			borrowedStatement = con.prepareStatement(querry);
+			ResultSet results = borrowedStatement.executeQuery();
+			while(results.next()){
+
+				int[] value = new int[2];
+				value[0] = results.getInt(1);
+				value[1] = results.getInt(2);
+				loans.add(value);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		ArrayList<long[]> fines = new ArrayList<long[]>();
+		System.out.println(loans.size());
+		for (Iterator iterator = loans.iterator(); iterator.hasNext();) {
+
+			boolean found = false;
+			int[] ls = (int[]) iterator.next();//Go through all the loans one by one
+			for (Iterator iterator2 = fines.iterator(); iterator2.hasNext();) {//Check if the id is already registered
+				long[] ls2 = (long[]) iterator2.next();
+				if(ls2[1]==ls[1]){//If the fine is already in the list, then add to it
+					ls2[0] = ls2[0]+(long)Communication.calculateFine(username, password, ls[0], false);
+					found = true;
+				}
+			}
+			if(!found){//Need to add the fine to the list
+				long[] loan = new long[2];
+				loan[0]=(long)Communication.calculateFine(username, password, ls[0], false);
+				loan[1] = ls[1];
+				fines.add(loan);
+			}
+
+		}
+		return fines;
+
+	}
+
+	/**
+	 * Will get all the fines of all the students who are borrowing anything
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @return An ArrayList of long arrays, the first cell is the fine, the second is the idTeacher
+	 */
+	public static ArrayList<long[]> getAllFinesTeachers(String username, String password){
+		connect(username, password);
+
+		String querry = "SELECT `BorrowID`, `id` FROM `borrow` WHERE `isStudent`='0' AND `Returned`='0'";
+		PreparedStatement borrowedStatement = null;
+		ArrayList<int[]> loans = new ArrayList<int[]>();
+
+		try {
+			borrowedStatement = con.prepareStatement(querry);
+			ResultSet results = borrowedStatement.executeQuery();
+			while(results.next()){
+
+				int[] value = new int[2];
+				value[0] = results.getInt(1);
+				value[1] = results.getInt(2);
+				loans.add(value);
+			}
+			results.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally{
+			close();
+		}
+		ArrayList<long[]> fines = new ArrayList<long[]>();
+		System.out.println(loans.size());
+		for (Iterator iterator = loans.iterator(); iterator.hasNext();) {
+
+			boolean found = false;
+			int[] ls = (int[]) iterator.next();//Go through all the loans one by one
+			for (Iterator iterator2 = fines.iterator(); iterator2.hasNext();) {//Check if the id is already registered
+				long[] ls2 = (long[]) iterator2.next();
+				if(ls2[1]==ls[1]){//If the fine is already in the list, then add to it
+					ls2[0] = ls2[0]+(long)Communication.calculateFine(username, password, ls[0], false);
+					found = true;
+				}
+			}
+			if(!found){//Need to add the fine to the list
+				long[] loan = new long[2];
+				loan[0]=(long)Communication.calculateFine(username, password, ls[0], false);
+				loan[1] = ls[1];
+				fines.add(loan);
+			}
+
+		}
+		return fines;
+	}
+
+	/**
+	 * Will return a book without a fine
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param borrowID The borrow to return
+	 * @return true if succesfull
+	 */
+	public static boolean returnNoFine(String username, String password, int borrowID){
+		connect(username, password);
+		boolean success = false;
+		String updateQuerry ="UPDATE `borrow` SET `Returned` = 1 WHERE `borrowID`=?";
+		String selectQueerry="SELECT `BookID_BookNumberID` FROM `borrow` WHERE `BorrowID`=?";
+		String secondUpdateQuerry ="UPDATE `bookid` SET `Borrowed` = 0 WHERE `BookNumberID`=?";
+		PreparedStatement updateStmnt = null;
+		PreparedStatement selectStmnt = null;
+		PreparedStatement insertStmnt = null;
+		try {
+			con.setAutoCommit(false);
+			updateStmnt = con.prepareStatement(updateQuerry);
+			updateStmnt.setInt(1, borrowID);
+			int linesChanged = updateStmnt.executeUpdate();
+			if (linesChanged!=1){
+				if (verbose) {
+					System.err.println("Error setting a book to be returned, rolling back");
+				}
+				throw new SQLException("Failed set book to be returned");
+			}else{
+				int BookID = 0;
+				selectStmnt = con.prepareStatement(selectQueerry);
+				selectStmnt.setInt(1, borrowID);
+				ResultSet results = selectStmnt.executeQuery();
+				if(!results.next()){
+					if(verbose){
+						System.out.println("book not found");
+						throw new SQLException("Failed to find book to borrow list");
+					}
+				}else{
+					BookID = results.getInt(1);
+				}
+				results.close();
+
+				insertStmnt = con.prepareStatement(secondUpdateQuerry);
+				insertStmnt.setInt(1, BookID);
+				linesChanged = insertStmnt.executeUpdate();
+				if (linesChanged!=1){
+					if (verbose) {
+						System.err.println("Error setting a book to be borrowed, rolling back");
+					}
+					throw new SQLException("Failed add book to borrow list");
+				}else{
+					if (verbose) {
+						System.out.println("Book is returned");
+					}
+					success = true;
+				}
+			}
+
+		} catch (SQLException e) {
+			try {
+				con.rollback();
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			}
+			e.printStackTrace();
+		}finally{
+			try {
+				con.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			close();
+		}
+		return true;
+	}
+
+	/**
+	 * Will return a book with a fine
+	 * @param username Username to use to connect
+	 * @param password Password to use to connect
+	 * @param borrowID the borrow to return
+	 * @return true if succesfull
+	 */
+	public static boolean returnWithFine(String username, String password, int borrowID){
+		String date = Communication.getDate(username, password);
+		connect(username, password);
+		boolean success = false;
+		String updateQuerry ="UPDATE `borrow` SET `Returned` = 1 WHERE `borrowID`=?";
+		String selectQueerry="SELECT `BookID_BookNumberID`, `isStudent`, `id` FROM `borrow` WHERE `BorrowID`=?";
+		String secondSelectQuerryStudent = "SELECT `Balance` FROM `balancestudents` WHERE `Students_idStudent`=?";
+		String secondSelectQuerryTeacher = "SELECT `Balance` FROM `balanceteachers` WHERE `Teachers_idTeacher`=?";
+		String secondUpdateQuerry ="UPDATE `bookid` SET `Borrowed` = 0 WHERE `BookNumberID`=?";
+		String balanceUpdateStudent = "UPDATE `balancestudents` SET `Balance`=? WHERE `Students_idStudent`=?";
+		String balanceUpdateTeacher = "UPDATE `balanceteachers` SET `Balance`=? WHERE `Teachers_idTeacher`=?";
+		String insertQuerry = "INSERT INTO `transaction` (`idUser`,`Date`,`Change`, `isStudent`) VALUES (?,?,?,?)";
+		PreparedStatement updateStmnt = null;
+		PreparedStatement selectStmnt = null;
+		PreparedStatement secondSelectStmnt = null;
+		PreparedStatement secondUpdateStmnt = null;
+		PreparedStatement balanceStmnt = null;
+		PreparedStatement insertStmnt = null;
+		try {
+			con.setAutoCommit(false);
+			updateStmnt = con.prepareStatement(updateQuerry);
+			updateStmnt.setInt(1, borrowID);
+			int linesChanged = updateStmnt.executeUpdate();
+			if (linesChanged!=1){
+				if (verbose) {
+					System.err.println("Error setting a book to be returned, rolling back");
+				}
+				throw new SQLException("Failed set book to be returned");
+			}else{
+				int BookID = 0;
+				boolean isStudent = false;
+				int id = 0;
+				selectStmnt = con.prepareStatement(selectQueerry);
+				selectStmnt.setInt(1, borrowID);
+				ResultSet results = selectStmnt.executeQuery();
+				if(!results.next()){
+					if(verbose){
+						System.out.println("book not found");
+						throw new SQLException("Failed to find book to borrow list");
+					}
+				}else{
+					BookID = results.getInt(1);
+					isStudent = results.getBoolean(2);
+					id = results.getInt(3);
+				}
+				results.close();
+
+				insertStmnt = con.prepareStatement(secondUpdateQuerry);
+				insertStmnt.setInt(1, BookID);
+				linesChanged = insertStmnt.executeUpdate();
+				if (linesChanged!=1){
+					if (verbose) {
+						System.err.println("Error setting a book to be borrowed, rolling back");
+					}
+					throw new SQLException("Failed add book to borrow list");
+				}else{
+
+					if (isStudent){
+						float Balance = 0;
+						secondSelectStmnt = con.prepareStatement(secondSelectQuerryStudent);
+						secondSelectStmnt.setInt(1, id);
+						ResultSet results2 = secondSelectStmnt.executeQuery();
+						if(!results2.next()){
+							if(verbose){
+								System.out.println("balance not found");
+								throw new SQLException("Failed to find balance to borrow list");
+							}
+						}else{
+							Balance = results2.getFloat(1);
+						}
+						results2.close();
+
+						if(Balance<Communication.calculateFine(username, password, borrowID, false)){
+							System.out.println("Insuffecient balance, rolling back");
+						}else{
+							insertStmnt = con.prepareStatement(insertQuerry);
+							insertStmnt.setInt(1, id);
+							insertStmnt.setString(2,date);
+							insertStmnt.setFloat(3, (float) (Communication.calculateFine(username, password, borrowID, false)*-1));
+							insertStmnt.setBoolean(4, true);
+							linesChanged = insertStmnt.executeUpdate();
+							if (linesChanged!=1){
+								if (verbose) {
+									System.err.println("Error inserting transaction, rolling back");
+								}
+								throw new SQLException("Failed to insert transaction");
+							}else{
+								balanceStmnt = con.prepareStatement(balanceUpdateStudent);
+								balanceStmnt.setFloat(1, (float) (Balance-Communication.calculateFine(username, password, borrowID, false)));
+								balanceStmnt.setInt(2, id);
+								linesChanged = balanceStmnt.executeUpdate();
+								if (linesChanged!=1){
+									if (verbose) {
+										System.err.println("Error updating balance, rolling back");
+									}
+									throw new SQLException("Failed to update balance");
+								}else{
+									if (verbose) {
+										System.out.println("Book is returned");
+									}
+									success = true;
+								}
+
+							}
+						}
+					}else{
+						//is teacher
+
+						float Balance = 0;
+						secondSelectStmnt = con.prepareStatement(secondSelectQuerryTeacher);
+						secondSelectStmnt.setInt(1, id);
+						ResultSet results2 = secondSelectStmnt.executeQuery();
+						if(!results2.next()){
+							if(verbose){
+								System.out.println("balance not found");
+								throw new SQLException("Failed to find balance to borrow list");
+							}
+						}else{
+							Balance = results2.getFloat(1);
+						}
+						if(con.isClosed()){
+							connect(username, password);
+						}
+						insertStmnt = con.prepareStatement(insertQuerry);
+						insertStmnt.setInt(1, id);
+						insertStmnt.setString(2,date);
+						insertStmnt.setFloat(3, (float) (Communication.calculateFine(username, password, borrowID, false)*-1));
+						insertStmnt.setBoolean(4, false);
+						linesChanged = insertStmnt.executeUpdate();
+						if (linesChanged!=1){
+							if (verbose) {
+								System.err.println("Error inserting transaction, rolling back");
+							}
+							throw new SQLException("Failed to insert transaction");
+						}else{
+							balanceStmnt = con.prepareStatement(balanceUpdateTeacher);
+							balanceStmnt.setFloat(1, (float) (Balance-Communication.calculateFine(username, password, borrowID, false)));
+							balanceStmnt.setInt(2, id);
+							linesChanged = balanceStmnt.executeUpdate();
+							if (linesChanged!=1){
+								if (verbose) {
+									System.err.println("Error updating balance, rolling back");
+								}
+								throw new SQLException("Failed to update balance");
+							}else{
+								if (verbose) {
+									System.out.println("Book is returned");
+								}
+								success = true;
+							}
+
+
+						}
+						results2.close();
+
+					}
+
+
+				}
+			}
+
+		} catch (SQLException e) {
+			try {
+				con.rollback();
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			}
+			e.printStackTrace();
+		}finally{
+			try {
+				if(con.isClosed()){
+					connect(username, password);
+				}
+				con.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			close();
+		}
+		return true;
+	}
+
+
 
 }

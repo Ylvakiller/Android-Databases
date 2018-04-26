@@ -1,5 +1,8 @@
 package httpServer;
 
+import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -70,7 +73,7 @@ public class ConsoleCommands extends Thread {
 		Communication.getBorrowedBooks(actualUser, actualPwd);
 		System.out.println("Console command interperenter starting");
 		ConsoleCommands.printCommands();
-		Communication.getAllLateBooks(actualUser, actualPwd);
+		//Communication.getAllLateBooks(actualUser, actualPwd);
 		keyboard = new Scanner(System.in);
 		while (true){
 			String input = keyboard.nextLine();
@@ -103,7 +106,8 @@ public class ConsoleCommands extends Thread {
 				} catch (ParseException e) {
 					System.err.println("Incorrect date given");
 					e.printStackTrace();
-				}}
+				}
+			}
 			break;
 			case "add book":
 			{
@@ -323,7 +327,7 @@ public class ConsoleCommands extends Thread {
 					if(booklist.size()<Communication.getSetting(actualUser, actualPwd, "StudentBookBorrowLimit")){
 						if(Communication.verbose){System.out.println("Student can borrow more books");}
 						//Student is allowed to borrow more books based on the limit
-						if(Communication.getStudentBalance(actualUser, actualPwd, internalID)<10){
+						if(Communication.getStudentBalance(actualUser, actualPwd, internalID)>10){
 							//Student has enough balance, time to find out what the student wants to borrow
 							String temp;
 							boolean bookselected = false;
@@ -343,7 +347,7 @@ public class ConsoleCommands extends Thread {
 											System.out.println("Book is already on loan, try again");
 										}else{
 											if (Communication.borrowBook(actualUser, actualPwd, book.bookNumberID, internalID, true)){
-												
+
 												ArrayList<SpecificBook> booklist2 = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, true);
 												if(booklist2.size()<Communication.getSetting(actualUser, actualPwd, "StudentBookBorrowLimit")){
 													System.out.print("Book succesfully borrowed");
@@ -429,7 +433,7 @@ public class ConsoleCommands extends Thread {
 										System.out.println("Book is already on loan, try again");
 									}else{
 										if (Communication.borrowBook(actualUser, actualPwd, book.bookNumberID, internalID, false)){
-											
+
 											ArrayList<SpecificBook> booklist2 = Communication.getBooksBorrowed(actualUser, actualPwd, internalID, false);
 											if(booklist2.size()<Communication.getSetting(actualUser, actualPwd, "TeacherBookBorrowLimit")){
 												System.out.print("Book succesfully borrowed");
@@ -501,13 +505,13 @@ public class ConsoleCommands extends Thread {
 				}
 			}
 			break;
-			
+
 			case "currently borrowed":
 			{
 				ArrayList<BorrowedBook> books = Communication.getBorrowedBooks(actualUser, actualPwd);
 				if(books.isEmpty()){
 					System.out.println("There currently are no books on loan");
-					
+
 				}else{
 					System.out.println("|Last return date |id\t|Type\t |Name\t\t\t\t|Author\t\t\t\t|Title");
 					for (Iterator iterator = books.iterator(); iterator
@@ -531,7 +535,70 @@ public class ConsoleCommands extends Thread {
 						break;
 					}
 				}
-			break;
+				break;
+			case "print late books":
+				Communication.printAllLateBooks(actualUser, actualPwd);
+
+				break;
+			case "fines students":
+				ArrayList<long[]> finesListS = Communication.getAllFinesStudents(actualUser, actualPwd);
+				ArrayList<long[]> sortedFinesListS = ConsoleCommands.sortArrayList(finesListS);
+				System.out.println("These are the current outstanding fines");
+				System.out.println("|id  |Name\t\t\t\t\t   |Fine");
+				
+				for (Iterator iterator = sortedFinesListS.iterator(); iterator
+						.hasNext();) {
+					long[] ls = (long[]) iterator.next();
+					StringBuilder builder = new StringBuilder();
+					Formatter formatter = new Formatter(builder);
+					try {
+						NumberFormat df = new DecimalFormat("#.00");
+						formatter.format("|%-4d|%-45s|%-8s", ls[1] , Communication.getNameByID((int)ls[1], true, actualUser, actualPwd),(df.format(ls[0])));
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					System.out.format(builder.toString()+"\n");//Moved the \n out of the stringuilder cause it wasnt being recognised
+					formatter.close();
+				}
+				break;
+			case "fines teachers":
+				ArrayList<long[]> finesList = Communication.getAllFinesTeachers(actualUser, actualPwd);
+				ArrayList<long[]> sortedFinesList = ConsoleCommands.sortArrayList(finesList);
+				System.out.println("These are the current outstanding fines");
+				System.out.println("|id  |Name\t\t\t\t\t   |Fine");
+				
+				for (Iterator iterator = sortedFinesList.iterator(); iterator
+						.hasNext();) {
+					long[] ls = (long[]) iterator.next();
+					StringBuilder builder = new StringBuilder();
+					Formatter formatter = new Formatter(builder);
+					try {
+						NumberFormat df = new DecimalFormat("#.00");
+						formatter.format("|%-4d|%-45s|%-8s", ls[1] , Communication.getNameByID((int)ls[1], false, actualUser, actualPwd),(df.format(ls[0])));
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					System.out.format(builder.toString()+"\n");//Moved the \n out of the stringuilder cause it wasnt being recognised
+					formatter.close();
+				}
+				break;
+			case "return book":
+				System.out.println("Please enter the id of the book");
+				int BookNumberID = Integer.valueOf(keyboard.nextLine());
+				if(Communication.calculateFine(actualUser, actualPwd, Communication.getBorrowID(actualUser, actualPwd, BookNumberID), true)==0){
+					if(Communication.returnNoFine(actualUser, actualPwd, Communication.getBorrowID(actualUser, actualPwd, BookNumberID))){
+						System.out.println("Returned the book");
+					}else{
+						System.err.println("Could not return book");
+					}
+				}else{
+					if(Communication.returnWithFine(actualUser, actualPwd, Communication.getBorrowID(actualUser, actualPwd, BookNumberID))){
+						System.out.println("Returned book");
+					}else{
+						System.err.println("Could not return book");
+					}
+				}
+				break;
 			default:
 				System.out.println("Please try again");
 				break;
@@ -569,18 +636,23 @@ public class ConsoleCommands extends Thread {
 		System.out.println("deposit student\t\t\tDeposit money for a student");
 
 
-		System.out.println("\nprint books\t\t\tPrints all the books in the database");
-		System.out.println("print students\t\t\tPrints all the students in the database");
-		System.out.println("print teachers\t\t\tPrints all the teachers in the database");
+		System.out.println("\nprint books\t\t\tPrint all the books in the database");
+		System.out.println("print students\t\t\tPrint all the students in the database");
+		System.out.println("print teachers\t\t\tPrint all the teachers in the database");
+		System.out.println("print late books\t\t\tPrint all late books");
 		System.out.println("get available book\t\tGet a book id for a type of book");
-		
+
 		System.out.println("\nstudent borrow\t\t\tBorrow a book for a student");
 		System.out.println("teacher borrow\t\t\tBorrow a book for a teacher");
-		
+
 		System.out.println("\ncurrently borrowed\t\tShow all the books that are currently borrowed, including by whom and when they need to be returned");
 		System.out.println("currently borrowed student\tShow what a student is borrowing");
 		System.out.println("currently borrowed teacher\tShow what a teacher is borrowing");
-		
+
+		System.out.println("fines students\t\t\tShow all the outstanding fines for students");
+		System.out.println("fines teachers\t\t\tShow all the outstanding fines for teachers");
+		System.out.println("\nreturn book\t\t\tReturn a book");
+
 
 
 
@@ -675,6 +747,26 @@ public class ConsoleCommands extends Thread {
 			System.out.println("Incorrect setting, returning to main screen");
 			break;
 		}
+	}
+
+	/**
+	 * Will sort an Arraylist of fines by the highest fines, not the most efficient, but quicker than doing it via the database
+	 * @param oldList The list to sort
+	 * @return The sorted list
+	 */
+	private static ArrayList<long[]> sortArrayList(ArrayList<long[]> oldList){
+		ArrayList<long[]> newList = new ArrayList<long[]>();
+		while(!oldList.isEmpty()){
+			int bestID = 0;
+			for(int i =0; i<oldList.size();i++){
+				if(oldList.get(bestID)[0]<oldList.get(i)[0]){
+					bestID=i;
+				}
+			}
+			newList.add(oldList.get(bestID).clone());
+			oldList.remove(bestID);
+		}
+		return newList;
 	}
 
 }

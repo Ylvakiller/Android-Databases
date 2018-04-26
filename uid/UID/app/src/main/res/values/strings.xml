@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">UID</string>
+    <string name="ConnectText">This is the bluetooth screen\nClick below to open a list of all the paired devices\nClick on any of them to go back</string>
+    <string name="load_list_of_paired_devices">Load list of paired devices</string>
+    <string name="press_here">Bluetooth list</string>
+    <string name="this_is_the_main_activity">This is the main activity</string>
+</resources>
