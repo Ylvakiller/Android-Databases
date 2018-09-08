@@ -20,7 +20,7 @@ public class Communication {
 	public Communication() {
 		// TODO Auto-generated constructor stub
 	}
-	private static final String hostname = "jdbc:mysql://192.168.178.10:3306/";
+	private static final String hostname = "jdbc:mysql://145.37.36.61:3306/";
 	private static final String dbName = "androiddatabase";
 	//private static final String username = "Android";
 	//private static final String password = "";
@@ -1515,6 +1515,9 @@ public class Communication {
 						if(Balance<Communication.calculateFine(username, password, borrowID, false)){
 							System.out.println("Insuffecient balance, rolling back");
 						}else{
+							if(con.isClosed()){
+								connect(username, password);
+							}
 							insertStmnt = con.prepareStatement(insertQuerry);
 							insertStmnt.setInt(1, id);
 							insertStmnt.setString(2,date);
@@ -1527,6 +1530,9 @@ public class Communication {
 								}
 								throw new SQLException("Failed to insert transaction");
 							}else{
+								if(con.isClosed()){
+									connect(username, password);
+								}
 								balanceStmnt = con.prepareStatement(balanceUpdateStudent);
 								balanceStmnt.setFloat(1, (float) (Balance-Communication.calculateFine(username, password, borrowID, false)));
 								balanceStmnt.setInt(2, id);
@@ -1560,6 +1566,7 @@ public class Communication {
 						}else{
 							Balance = results2.getFloat(1);
 						}
+						results2.close();
 						if(con.isClosed()){
 							connect(username, password);
 						}
@@ -1593,7 +1600,7 @@ public class Communication {
 
 
 						}
-						results2.close();
+						
 
 					}
 
@@ -1619,7 +1626,7 @@ public class Communication {
 			}
 			close();
 		}
-		return true;
+		return success;
 	}
 
 

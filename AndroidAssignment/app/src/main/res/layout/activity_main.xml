@@ -30,12 +30,13 @@
         app:layout_constraintRight_toRightOf="parent"
         app:menu="@menu/navigation" />
 
-    <ImageView
-        android:id="@+id/imageView"
+    <fragment
+        android:id="@+id/fragment2"
+        android:name="ylva.Android.PlusOneFragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@android:drawable/stat_sys_data_bluetooth"
-        tools:layout_editor_absoluteX="201dp"
-        tools:layout_editor_absoluteY="156dp" />
+        tools:layout_editor_absoluteX="69dp"
+        tools:layout_editor_absoluteY="105dp" />
+
 
 </android.support.constraint.ConstraintLayout>
